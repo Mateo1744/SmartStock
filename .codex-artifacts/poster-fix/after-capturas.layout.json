@@ -1,0 +1,1881 @@
+{
+  "schema": "openai.presentation.layout/v5",
+  "unit": "px",
+  "slide": {
+    "id": "sl/y90nupkv",
+    "index": 0,
+    "layout": {
+      "id": "ly/elwrupwj",
+      "name": "Blank"
+    },
+    "masterLayoutId": "ly/atofqts7",
+    "backgroundColor": "rgba(255,255,255,1)",
+    "position": {
+      "left": 0,
+      "top": 0,
+      "width": 1582.67,
+      "height": 2110.67
+    }
+  },
+  "inheritedLayers": [
+    {
+      "scope": "layout",
+      "id": "ly/elwrupwj",
+      "name": "Blank",
+      "type": "obj",
+      "parentLayoutId": "ly/atofqts7",
+      "elements": [
+        {
+          "order": 1,
+          "kind": "shape",
+          "scope": "layout",
+          "id": "sh/k7ixwzid",
+          "editable": false,
+          "name": "Holder 2",
+          "position": {
+            "left": 0,
+            "top": 0,
+            "width": 0,
+            "height": 0
+          },
+          "style": {
+            "insets": {
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        },
+        {
+          "order": 2,
+          "kind": "textbox",
+          "scope": "layout",
+          "id": "sh/lsryp4zi",
+          "editable": false,
+          "name": "Holder 3",
+          "position": {
+            "left": 0,
+            "top": 0,
+            "width": 0,
+            "height": 0
+          },
+          "text": "10/23/2025",
+          "style": {
+            "insets": {
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          "paragraphs": [
+            {
+              "index": 1,
+              "text": "10/23/2025",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "10/23/2025"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 3,
+          "kind": "textbox",
+          "scope": "layout",
+          "id": "sh/mt0fyp03",
+          "editable": false,
+          "name": "Holder 4",
+          "position": {
+            "left": 0,
+            "top": 0,
+            "width": 0,
+            "height": 0
+          },
+          "text": "‹Nº›",
+          "style": {
+            "insets": {
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          "paragraphs": [
+            {
+              "index": 1,
+              "text": "‹Nº›",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "‹Nº›"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "master",
+      "id": "ly/atofqts7",
+      "type": "master",
+      "backgroundColor": "bg1",
+      "elements": [
+        {
+          "order": 1,
+          "kind": "image",
+          "scope": "master",
+          "id": "im/sjy9onit",
+          "editable": false,
+          "name": "bg object 16",
+          "position": {
+            "left": 0,
+            "top": 0,
+            "width": 1582.91,
+            "height": 2110.65
+          },
+          "contentType": "image/jpeg",
+          "asset": {
+            "contentType": "image/jpeg",
+            "byteLength": 1013294
+          },
+          "fillImage": {
+            "contentType": "image/jpeg",
+            "byteLength": 1013294
+          }
+        },
+        {
+          "order": 2,
+          "kind": "shape",
+          "scope": "master",
+          "id": "sh/4va94z21",
+          "editable": false,
+          "name": "Holder 2",
+          "position": {
+            "left": 79.17,
+            "top": 84.43,
+            "width": 1425,
+            "height": 337.71
+          },
+          "geometry": "rect",
+          "style": {
+            "wrap": "square",
+            "autoFit": "resizeShapeToFitText",
+            "insets": {
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        },
+        {
+          "order": 3,
+          "kind": "shape",
+          "scope": "master",
+          "id": "sh/pwjax436",
+          "editable": false,
+          "name": "Holder 3",
+          "position": {
+            "left": 79.17,
+            "top": 485.45,
+            "width": 1425,
+            "height": 1393.04
+          },
+          "geometry": "rect",
+          "style": {
+            "wrap": "square",
+            "autoFit": "resizeShapeToFitText",
+            "insets": {
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        },
+        {
+          "order": 4,
+          "kind": "shape",
+          "scope": "master",
+          "id": "sh/qxsr69kr",
+          "editable": false,
+          "name": "Holder 4",
+          "position": {
+            "left": 538.33,
+            "top": 1962.92,
+            "width": 506.67,
+            "height": 105.53
+          },
+          "geometry": "rect",
+          "style": {
+            "wrap": "square",
+            "autoFit": "resizeShapeToFitText",
+            "insets": {
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        },
+        {
+          "order": 5,
+          "kind": "textbox",
+          "scope": "master",
+          "id": "sh/ry1szulc",
+          "editable": false,
+          "name": "Holder 5",
+          "position": {
+            "left": 79.17,
+            "top": 1962.92,
+            "width": 364.17,
+            "height": 105.53
+          },
+          "geometry": "rect",
+          "text": "10/23/2025",
+          "style": {
+            "wrap": "square",
+            "autoFit": "resizeShapeToFitText",
+            "insets": {
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          "paragraphs": [
+            {
+              "index": 1,
+              "text": "10/23/2025",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "10/23/2025"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "order": 6,
+          "kind": "textbox",
+          "scope": "master",
+          "id": "sh/czu98z2x",
+          "editable": false,
+          "name": "Holder 6",
+          "position": {
+            "left": 1140,
+            "top": 1962.92,
+            "width": 364.17,
+            "height": 105.53
+          },
+          "geometry": "rect",
+          "text": "‹Nº›",
+          "style": {
+            "wrap": "square",
+            "autoFit": "resizeShapeToFitText",
+            "insets": {
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          "paragraphs": [
+            {
+              "index": 1,
+              "text": "‹Nº›",
+              "runs": [
+                {
+                  "index": 1,
+                  "text": "‹Nº›"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "elements": [
+    {
+      "order": 1,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/k3yl0zql",
+      "editable": true,
+      "name": "object 3",
+      "position": {
+        "left": 73.45,
+        "top": 245.81,
+        "width": 1400,
+        "height": 257.93
+      },
+      "geometry": "rect",
+      "text": "SmartStock: Sistema móvil de gestión de inventarios\n\nDocente asesor: Jonattan Usma Vasquez\nIntegrantes: David Naranjo, Manuela Camargo \nAsignatura: Desarrollo móvil\nPrograma académico: Ingeniería en software\nFacultad: Ingeniería",
+      "style": {
+        "anchor": 1,
+        "vertical": 1,
+        "fontSize": 48,
+        "typeface": "Calibri",
+        "color": "#09662E",
+        "bold": false,
+        "italic": false,
+        "verticalAlignment": "top",
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 1.2,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "SmartStock: Sistema móvil de gestión de inventarios",
+          "lineSpacingPercent": 100000,
+          "style": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "SmartStock",
+              "fontSize": 48,
+              "typeface": "Calibri",
+              "color": "#09662E"
+            },
+            {
+              "index": 2,
+              "text": ": ",
+              "fontSize": 48,
+              "typeface": "Calibri",
+              "color": "#09662E"
+            },
+            {
+              "index": 3,
+              "text": "Sistema móvil",
+              "fontSize": 48,
+              "typeface": "Calibri",
+              "color": "#09662E"
+            },
+            {
+              "index": 4,
+              "text": " de gestión de inventarios",
+              "fontSize": 48,
+              "typeface": "Calibri",
+              "color": "#09662E"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "Docente asesor: Jonattan Usma Vasquez",
+          "style": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Docente",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": " ",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": "asesor:",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 4,
+              "text": " ",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 5,
+              "text": "Jo",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            },
+            {
+              "index": 6,
+              "text": "nattan",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            },
+            {
+              "index": 7,
+              "text": " Usma ",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            },
+            {
+              "index": 8,
+              "text": "Vasquez",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "Integrantes: David Naranjo, Manuela Camargo ",
+          "style": {
+            "alignment": "left"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Integrantes: ",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": "David Naranjo, Manuela Camargo",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": " ",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "Asignatura: Desarrollo móvil",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Asignatura",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": ":",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": " ",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 4,
+              "text": "Desarrollo móvil",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 6,
+          "text": "Programa académico: Ingeniería en software",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Programa",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": " ",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": "académico",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 4,
+              "text": ":",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 5,
+              "text": " ",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 6,
+              "text": "Ingeniería",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            },
+            {
+              "index": 7,
+              "text": " ",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            },
+            {
+              "index": 8,
+              "text": "en",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            },
+            {
+              "index": 9,
+              "text": " ",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            },
+            {
+              "index": 10,
+              "text": "software",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 7,
+          "text": "Facultad: Ingeniería",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Facultad:",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": " ",
+              "fontSize": 29.33,
+              "typeface": "Calibri",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": "Ingeniería",
+              "fontSize": 29.33,
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "kind": "image",
+      "scope": "slide",
+      "id": "im/ri9kvmxs",
+      "editable": true,
+      "name": "object 5",
+      "position": {
+        "left": 1042.26,
+        "top": 1867.94,
+        "width": 496.43,
+        "height": 99.61
+      },
+      "rotation": 0,
+      "contentType": "image/png",
+      "asset": {
+        "contentType": "image/png",
+        "byteLength": 11195
+      },
+      "fillImage": {
+        "contentType": "image/png",
+        "byteLength": 11195
+      }
+    },
+    {
+      "order": 3,
+      "kind": "shape",
+      "scope": "slide",
+      "id": "sh/ts7md4r2",
+      "editable": true,
+      "name": "object 6",
+      "position": {
+        "left": 77.25,
+        "top": 559.33,
+        "width": 655.47,
+        "height": 58.27
+      },
+      "rotation": 0,
+      "geometry": "custom",
+      "fillColor": "#09662E",
+      "style": {
+        "fontSize": 18.67,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      }
+    },
+    {
+      "order": 4,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/sryl4zqx",
+      "editable": true,
+      "name": "object 7",
+      "position": {
+        "left": 81.11,
+        "top": 550.13,
+        "width": 640.13,
+        "height": 244.97
+      },
+      "geometry": "rect",
+      "text": "1. INTRODUCCIÓN.\nSmartStock es una aplicación móvil diseñada para optimizar el control de inventarios en pequeñas y medianas empresas. Centraliza la información de clientes, productos, compras y estadísticas para facilitar el seguimiento del inventario y la toma de decisiones.\nLa herramienta surge ante la necesidad de reducir errores y demoras derivados del manejo manual de inventarios. Con una interfaz clara, SmartStock permite al administrador gestionar el negocio y a los clientes consultar productos y registrar sus compras.",
+      "style": {
+        "vertical": 1,
+        "fontSize": 40.67,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "italic": false,
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 17.2,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "1. INTRODUCCIÓN.",
+          "lineSpacingPercent": 100000,
+          "runs": [
+            {
+              "index": 1,
+              "text": "1.",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": " ",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": "INTRODUCCIÓN.",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "SmartStock es una aplicación móvil diseñada para optimizar el control de inventarios en pequeñas y medianas empresas. Centraliza la información de clientes, productos, compras y estadísticas para facilitar el seguimiento del inventario y la toma de decisiones.",
+          "lineSpacingPercent": 90200,
+          "style": {
+            "alignment": "justify"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "SmartStock es una aplicación móvil diseñada para optimizar el control de inventarios en pequeñas y medianas empresas. Centraliza la información de clientes, productos, compras y estadísticas para facilitar el seguimiento del inventario y la toma de decisiones.",
+              "typeface": "Calibri",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "La herramienta surge ante la necesidad de reducir errores y demoras derivados del manejo manual de inventarios. Con una interfaz clara, SmartStock permite al administrador gestionar el negocio y a los clientes consultar productos y registrar sus compras.",
+          "lineSpacingPercent": 90200,
+          "style": {
+            "alignment": "justify"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "La herramienta surge ante la necesidad de reducir errores y demoras derivados del manejo manual de inventarios. Con una interfaz clara, SmartStock permite al administrador gestionar el negocio y a los clientes consultar productos y registrar sus compras.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "kind": "shape",
+      "scope": "slide",
+      "id": "sh/fu94fe98",
+      "editable": true,
+      "name": "object 8",
+      "position": {
+        "left": 77.25,
+        "top": 969.22,
+        "width": 655.47,
+        "height": 58.27
+      },
+      "geometry": "custom",
+      "fillColor": "#09662E",
+      "style": {
+        "fontSize": 18.67,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      }
+    },
+    {
+      "order": 6,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/utg3698n",
+      "editable": true,
+      "name": "object 9",
+      "position": {
+        "left": 82.16,
+        "top": 943.72,
+        "width": 640.13,
+        "height": 278.93
+      },
+      "geometry": "rect",
+      "text": ".\n2. PLANTEAMIENTO DEL PROBLEMA.\nEn muchas PYMEs, la gestión del inventario se realiza con métodos manuales o poco confiables, generando errores de registro, duplicación de datos y descontrol sobre las existencias. Esta falta de automatización ocasiona demoras en las operaciones, desabastecimiento o exceso de productos, y decisiones imprecisas que afectan la eficiencia del negocio.\nAnte esta problemática, se identificó la necesidad de un sistema digital que centralice la información y permita actualizar el stock de forma automática en la base de datos local, garantizando precisión, rapidez y transparencia en los procesos de inventario.",
+      "style": {
+        "vertical": 1,
+        "fontSize": 17.33,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 3.6,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": ".",
+          "style": {
+            "alignment": "justify"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": ".",
+              "fontSize": 17.33,
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "2. PLANTEAMIENTO DEL PROBLEMA.",
+          "lineSpacingPercent": 100000,
+          "runs": [
+            {
+              "index": 1,
+              "text": "2.",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": " ",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": "PLANTEAMIENTO",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 4,
+              "text": " ",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 5,
+              "text": "DEL",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 6,
+              "text": " ",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 7,
+              "text": "PROBLEMA.",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "En muchas PYMEs, la gestión del inventario se realiza con métodos manuales o poco confiables, generando errores de registro, duplicación de datos y descontrol sobre las existencias. Esta falta de automatización ocasiona demoras en las operaciones, desabastecimiento o exceso de productos, y decisiones imprecisas que afectan la eficiencia del negocio.",
+          "style": {
+            "alignment": "justify"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "En muchas ",
+              "typeface": "Calibri"
+            },
+            {
+              "index": 2,
+              "text": "PYMEs",
+              "typeface": "Calibri"
+            },
+            {
+              "index": 3,
+              "text": ", la gestión del inventario se realiza con métodos manuales o poco confiables, generando errores de registro, duplicación de datos y descontrol sobre las existencias. Esta falta de automatización ocasiona demoras en las operaciones, desabastecimiento o exceso de productos, y decisiones imprecisas que afectan la eficiencia del negocio.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "Ante esta problemática, se identificó la necesidad de un sistema digital que centralice la información y permita actualizar el stock de forma automática en la base de datos local, garantizando precisión, rapidez y transparencia en los procesos de inventario.",
+          "style": {
+            "alignment": "justify"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "Ante esta problemática, se identificó la necesidad de un sistema digital que centralice la información y permita ",
+              "typeface": "Calibri"
+            },
+            {
+              "index": 2,
+              "text": "actualizar el stock de forma automática en la base de datos local",
+              "typeface": "Calibri"
+            },
+            {
+              "index": 3,
+              "text": ", garantizando precisión, rapidez y transparencia en los procesos de inventario.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "kind": "shape",
+      "scope": "slide",
+      "id": "sh/wn6dc7eh",
+      "editable": true,
+      "name": "object 10",
+      "position": {
+        "left": 70.04,
+        "top": 1299.27,
+        "width": 655.47,
+        "height": 58.27
+      },
+      "geometry": "custom",
+      "fillColor": "#09662E",
+      "style": {
+        "fontSize": 18.67,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      }
+    },
+    {
+      "order": 8,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/hofulsf2",
+      "editable": true,
+      "name": "object 11",
+      "position": {
+        "left": 85.43,
+        "top": 1305.62,
+        "width": 636.87,
+        "height": 280
+      },
+      "geometry": "rect",
+      "text": "3. METODOLOGÍA.\n\nEl desarrollo se realizó bajo la metodología ágil Scrum, dividiendo el trabajo en sprints con tareas de análisis, diseño, desarrollo y pruebas.\n\nLa aplicación se desarrolló con React Native y Expo. Expo Router gestiona la navegación y Expo SQLite almacena localmente la información. El sistema utiliza autenticación por roles y operaciones transaccionales para actualizar el inventario al registrar o modificar compras.\nEl proceso iterativo permitió comprobar el funcionamiento de cada módulo.",
+      "style": {
+        "vertical": 1,
+        "fontSize": 40.67,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "italic": false,
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 1.6,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "3. METODOLOGÍA.",
+          "lineSpacingPercent": 100000,
+          "runs": [
+            {
+              "index": 1,
+              "text": "3.",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": " ",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": "METODOLOGÍA.",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "El desarrollo se realizó bajo la metodología ágil Scrum, dividiendo el trabajo en sprints con tareas de análisis, diseño, desarrollo y pruebas.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "El desarrollo se realizó bajo la metodología ágil Scrum, dividiendo el trabajo en sprints con tareas de análisis, diseño, desarrollo y pruebas.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "\nLa aplicación se desarrolló con React Native y Expo. Expo Router gestiona la navegación y Expo SQLite almacena localmente la información. El sistema utiliza autenticación por roles y operaciones transaccionales para actualizar el inventario al registrar o modificar compras.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "\n",
+              "typeface": "Calibri"
+            },
+            {
+              "index": 2,
+              "text": "La aplicación se desarrolló con React Native y Expo. Expo Router gestiona la navegación y Expo SQLite almacena localmente la información. El sistema utiliza autenticación por roles y operaciones transaccionales para actualizar el inventario al registrar o modificar compras.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "El proceso iterativo permitió comprobar el funcionamiento de cada módulo.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "El proceso iterativo permitió comprobar el funcionamiento de cada módulo.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 9,
+      "kind": "shape",
+      "scope": "slide",
+      "id": "sh/ul4vaxgb",
+      "editable": true,
+      "name": "object 12",
+      "position": {
+        "left": 845.42,
+        "top": 496.23,
+        "width": 655.47,
+        "height": 58.27
+      },
+      "geometry": "custom",
+      "fillColor": "#09662E",
+      "style": {
+        "fontSize": 18.67,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      }
+    },
+    {
+      "order": 10,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/vmdcj2xw",
+      "editable": true,
+      "name": "object 13",
+      "position": {
+        "left": 860.22,
+        "top": 506.64,
+        "width": 613.38,
+        "height": 302.67
+      },
+      "geometry": "rect",
+      "text": "RESULTADOS.\nLas vistas de SmartStock muestran un sistema móvil de gestión de inventario con módulos de clientes, productos, compras y estadísticas.\n\nEntre sus funciones destacan:\nGestión de productos: registro, edición, búsqueda y control de existencias.\nRegistro de compras con actualización automática del inventario local.\nEstadísticas visuales para consultar ingresos, compras y alertas de stock.\nLa implementación del sistema permitió mejorar la organización interna, reducir errores humanos y ofrecer información actualizada.\n",
+      "style": {
+        "vertical": 1,
+        "fontSize": 40.67,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "italic": false,
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 1.6,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "RESULTADOS.",
+          "lineSpacingPercent": 100000,
+          "runs": [
+            {
+              "index": 1,
+              "text": "RESULTADOS.",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "Las vistas de SmartStock muestran un sistema móvil de gestión de inventario con módulos de clientes, productos, compras y estadísticas.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Las vistas de SmartStock muestran un sistema móvil de gestión de inventario con módulos de clientes, productos, compras y estadísticas.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "\nEntre sus funciones destacan:",
+          "runs": [
+            {
+              "index": 1,
+              "text": "\n",
+              "typeface": "Calibri"
+            },
+            {
+              "index": 2,
+              "text": "Entre sus funciones destacan:",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 4,
+          "text": "Gestión de productos: registro, edición, búsqueda y control de existencias.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Gestión de productos: registro, edición, búsqueda y control de existencias.",
+              "typeface": "Calibri",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 5,
+          "text": "Registro de compras con actualización automática del inventario local.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Registro de compras con actualización automática del inventario local.",
+              "typeface": "Calibri",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 6,
+          "text": "Estadísticas visuales para consultar ingresos, compras y alertas de stock.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Estadísticas visuales para consultar ingresos, compras y alertas de stock.",
+              "typeface": "Calibri",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 7,
+          "text": "La implementación del sistema permitió mejorar la organización interna, reducir errores humanos y ofrecer información actualizada.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "La implementación del sistema permitió mejorar la organización interna, reducir errores humanos y ofrecer información actualizada.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 11,
+      "kind": "shape",
+      "scope": "slide",
+      "id": "sh/4r6dg7et",
+      "editable": true,
+      "name": "object 14",
+      "position": {
+        "left": 334.28,
+        "top": 1773.36,
+        "width": 655.47,
+        "height": 58.27
+      },
+      "geometry": "custom",
+      "fillColor": "#09662E",
+      "style": {
+        "fontSize": 18.67,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "insets": {
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      }
+    },
+    {
+      "order": 12,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/ipovexwn",
+      "editable": true,
+      "name": "object 16",
+      "position": {
+        "left": 69.34,
+        "top": 56.22,
+        "width": 409.4,
+        "height": 168
+      },
+      "geometry": "rect",
+      "text": "TERCERA FERIA PROYECTO PEDAGÓGICO INTEGRADOR (PPI) FACULTAD DE INGENIERÍA.",
+      "style": {
+        "anchor": 1,
+        "vertical": 1,
+        "fontSize": 37.33,
+        "typeface": "Calibri",
+        "color": "#09662E",
+        "bold": true,
+        "italic": false,
+        "verticalAlignment": "top",
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 6.33,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "TERCERA FERIA PROYECTO PEDAGÓGICO INTEGRADOR (PPI) FACULTAD DE INGENIERÍA.",
+          "style": {
+            "alignment": "center"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "TERCERA",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 2,
+              "text": " ",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 3,
+              "text": "FERIA ",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 4,
+              "text": "PROYECTO",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 5,
+              "text": " ",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 6,
+              "text": "PEDAGÓGICO INTEGRADOR",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 7,
+              "text": " ",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 8,
+              "text": "(PPI) ",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 9,
+              "text": "FACULTAD",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 10,
+              "text": " ",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 11,
+              "text": "DE",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 12,
+              "text": " ",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            },
+            {
+              "index": 13,
+              "text": "INGENIERÍA.",
+              "fontSize": 37.33,
+              "typeface": "Calibri",
+              "color": "#09662E",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 13,
+      "kind": "image",
+      "scope": "slide",
+      "id": "im/1kvyhsfm",
+      "editable": true,
+      "name": "Imagen 26",
+      "position": {
+        "left": 810,
+        "top": 865,
+        "width": 360,
+        "height": 320
+      },
+      "rotation": 0,
+      "alt": "Pantalla de inicio de sesión de SmartStock",
+      "contentType": "image/png",
+      "fit": "contain",
+      "asset": {
+        "contentType": "image/png",
+        "byteLength": 16403
+      },
+      "fillImage": {
+        "contentType": "image/png",
+        "byteLength": 96544
+      }
+    },
+    {
+      "order": 14,
+      "kind": "image",
+      "scope": "slide",
+      "id": "im/nmxgjixc",
+      "editable": true,
+      "name": "Imagen 28",
+      "position": {
+        "left": 1200,
+        "top": 865,
+        "width": 370,
+        "height": 320
+      },
+      "rotation": 0,
+      "alt": "Panel administrativo de SmartStock",
+      "contentType": "image/png",
+      "fit": "contain",
+      "asset": {
+        "contentType": "image/png",
+        "byteLength": 39340
+      },
+      "fillImage": {
+        "contentType": "image/png",
+        "byteLength": 226683
+      }
+    },
+    {
+      "order": 15,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/h072l4jy",
+      "editable": true,
+      "name": "object 9",
+      "position": {
+        "left": 810,
+        "top": 833,
+        "width": 360,
+        "height": 22.4
+      },
+      "geometry": "rect",
+      "text": "INICIO DE SESIÓN",
+      "style": {
+        "vertical": 1,
+        "fontSize": 17.33,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 3.6,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "INICIO DE SESIÓN",
+          "style": {
+            "alignment": "justify"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "INICIO DE SESIÓN",
+              "fontSize": 17.33,
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 16,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/i1gje90j",
+      "editable": true,
+      "name": "object 9",
+      "position": {
+        "left": 1200,
+        "top": 833,
+        "width": 370,
+        "height": 22.4
+      },
+      "geometry": "rect",
+      "text": "PANEL ADMINISTRATIVO",
+      "style": {
+        "vertical": 1,
+        "fontSize": 18.67,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 3.6,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "PANEL ADMINISTRATIVO",
+          "style": {
+            "alignment": "justify"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "PANEL ADMINISTRATIVO",
+              "fontSize": 18.67,
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 17,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/j2pkne14",
+      "editable": true,
+      "name": "object 9",
+      "position": {
+        "left": 810,
+        "top": 1200,
+        "width": 360,
+        "height": 22.4
+      },
+      "geometry": "rect",
+      "text": "ÁREA DE CLIENTE",
+      "style": {
+        "vertical": 1,
+        "fontSize": 18.67,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 3.6,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "ÁREA DE CLIENTE",
+          "style": {
+            "alignment": "justify"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "ÁREA DE CLIENTE",
+              "alignment": "justify"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 18,
+      "kind": "image",
+      "scope": "slide",
+      "id": "im/t8jihgzm",
+      "editable": true,
+      "name": "Imagen 37",
+      "position": {
+        "left": 810,
+        "top": 1232,
+        "width": 360,
+        "height": 350
+      },
+      "rotation": 0,
+      "alt": "Área de cliente de SmartStock",
+      "contentType": "image/png",
+      "fit": "contain",
+      "asset": {
+        "contentType": "image/png",
+        "byteLength": 30766
+      },
+      "fillImage": {
+        "contentType": "image/png",
+        "byteLength": 161667
+      }
+    },
+    {
+      "order": 19,
+      "kind": "image",
+      "scope": "slide",
+      "id": "im/43elgf2p",
+      "editable": true,
+      "name": "Imagen 39",
+      "position": {
+        "left": 0,
+        "top": 0,
+        "width": 1,
+        "height": 1
+      },
+      "contentType": "image/png",
+      "asset": {
+        "contentType": "image/png",
+        "byteLength": 163389
+      },
+      "fillImage": {
+        "contentType": "image/png",
+        "byteLength": 163389
+      }
+    },
+    {
+      "order": 20,
+      "kind": "shape",
+      "scope": "slide",
+      "id": "sh/14fyhgbe",
+      "editable": true,
+      "name": "object 9",
+      "position": {
+        "left": 0,
+        "top": 0,
+        "width": 1,
+        "height": 22.4
+      },
+      "geometry": "rect",
+      "style": {
+        "vertical": 1,
+        "fontSize": 18.67,
+        "typeface": "Calibri",
+        "bold": false,
+        "italic": false,
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 3.6,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      }
+    },
+    {
+      "order": 21,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/036h8but",
+      "editable": true,
+      "name": "object 11",
+      "position": {
+        "left": 334.28,
+        "top": 1777.62,
+        "width": 980.55,
+        "height": 117.6
+      },
+      "geometry": "rect",
+      "text": "Recomendaciones futuras.\nSe recomienda implementar notificaciones automáticas, copias de seguridad y mejoras de accesibilidad en la aplicación móvil.\nTambién sería útil añadir sincronización en la nube, exportación de informes y un módulo de auditoría para consultar el historial de cambios.",
+      "style": {
+        "vertical": 1,
+        "fontSize": 40.67,
+        "typeface": "Calibri",
+        "color": "#FFFFFF",
+        "bold": true,
+        "italic": false,
+        "wrap": "square",
+        "autoFit": "resizeShapeToFitText",
+        "insets": {
+          "top": 1.6,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "Recomendaciones futuras.",
+          "lineSpacingPercent": 100000,
+          "runs": [
+            {
+              "index": 1,
+              "text": "Recomendaciones futuras.",
+              "fontSize": 40.67,
+              "typeface": "Calibri",
+              "color": "#FFFFFF",
+              "bold": true
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 2,
+          "text": "Se recomienda implementar notificaciones automáticas, copias de seguridad y mejoras de accesibilidad en la aplicación móvil.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "Se recomienda implementar notificaciones automáticas, copias de seguridad y mejoras de accesibilidad en la aplicación móvil.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        },
+        {
+          "index": 3,
+          "text": "También sería útil añadir sincronización en la nube, exportación de informes y un módulo de auditoría para consultar el historial de cambios.",
+          "runs": [
+            {
+              "index": 1,
+              "text": "También sería útil añadir sincronización en la nube, exportación de informes y un módulo de auditoría para consultar el historial de cambios.",
+              "typeface": "Calibri"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    },
+    {
+      "order": 22,
+      "kind": "image",
+      "scope": "slide",
+      "id": "im/gzulcv2d",
+      "editable": true,
+      "name": "Captura de estadísticas",
+      "position": {
+        "left": 1200,
+        "top": 1232,
+        "width": 370,
+        "height": 350
+      },
+      "alt": "Panel de estadísticas de SmartStock",
+      "contentType": "image/png",
+      "fit": "contain",
+      "asset": {
+        "contentType": "image/png",
+        "byteLength": 29265
+      }
+    },
+    {
+      "order": 23,
+      "kind": "textbox",
+      "scope": "slide",
+      "id": "sh/mpozalcz",
+      "editable": true,
+      "name": "Rótulo de estadísticas",
+      "position": {
+        "left": 1200,
+        "top": 1200,
+        "width": 370,
+        "height": 22.4
+      },
+      "geometry": "rect",
+      "lineWidth": 0,
+      "text": "ESTADÍSTICAS",
+      "style": {
+        "fontSize": 18.67,
+        "typeface": "Calibri",
+        "color": "#000000",
+        "bold": false,
+        "italic": false,
+        "insets": {
+          "top": 4.8,
+          "right": 9.6,
+          "bottom": 4.8,
+          "left": 9.6
+        }
+      },
+      "paragraphs": [
+        {
+          "index": 1,
+          "text": "ESTADÍSTICAS",
+          "style": {
+            "fontSize": 18.67,
+            "color": "#000000"
+          },
+          "runs": [
+            {
+              "index": 1,
+              "text": "ESTADÍSTICAS",
+              "fontSize": 18.67,
+              "color": "#000000"
+            }
+          ],
+          "bulletCharacter": "",
+          "marginLeft": 0
+        }
+      ]
+    }
+  ]
+}
