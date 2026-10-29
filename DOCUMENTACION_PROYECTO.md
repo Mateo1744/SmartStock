@@ -1,85 +1,138 @@
-# Documentación de EntreMóvil
+# Documentación técnica de SmartStock
 
-## Resumen
+## Propósito
 
-EntreMóvil es una aplicación desarrollada con Expo, React Native, Expo Router y SQLite. Permite registrar cuentas, aprobar usuarios, controlar el acceso por rol, administrar clientes y productos, y registrar compras conservando su encabezado, detalles e historial.
+SmartStock es una aplicación multiplataforma para pequeños negocios que centraliza clientes, productos, inventario y compras. La solución utiliza Supabase como servicio de autenticación y base de datos remota, por lo que la información se conserva y sincroniza entre web y dispositivos móviles.
 
-## Roles
+## Roles y estados
 
-- **Administrador:** aprueba solicitudes, asigna roles y administra clientes, productos y compras.
-- **Cliente:** completa y actualiza su perfil, consulta productos, registra compras y consulta su propio historial.
+### Administrador
 
-## Organización del código
+- Revisa solicitudes de acceso.
+- Activa o rechaza cuentas.
+- Administra clientes y productos.
+- Consulta y modifica compras.
+- Consulta indicadores de ventas e inventario.
 
-### `src/app`
+### Cliente
 
-Contiene las rutas de Expo Router. Cada archivo representa una dirección de la aplicación y conecta esa ruta con su pantalla correspondiente.
+- Completa y actualiza su perfil.
+- Consulta productos disponibles.
+- Registra compras.
+- Consulta únicamente su historial.
 
-- `_layout.tsx`: abre SQLite, comparte la autenticación y registra las pantallas.
-- `index.tsx`: decide si la aplicación abre Login o Home.
-- `login.tsx` y `register.tsx`: rutas públicas.
-- `home.tsx`: ruta del menú principal.
-- `perfil.tsx`: ruta para completar el perfil inicial.
-- `clientes.tsx`, `productos.tsx`, `encabezados.tsx` y `detalles.tsx`: módulos principales.
-- `solicitudes.tsx`: aprobación de cuentas.
-- `nueva-compra.tsx`: creación de compras para clientes.
+Una cuenta puede estar `pendiente`, `activo` o `inactivo`. La confirmación del correo pertenece a Supabase Auth y la aprobación administrativa pertenece al perfil público de SmartStock.
 
-### `screens`
+## Arquitectura
 
-Contiene la interfaz y la lógica de cada pantalla. Al inicio de cada archivo hay un resumen; dentro del archivo hay comentarios que explican estados, validaciones, consultas, permisos, eventos y elementos visuales.
+### Presentación
 
-### `src/context/auth-context.tsx`
+`screens` contiene las pantallas, formularios, validaciones visuales, estados de carga y estados vacíos.
 
-Centraliza la sesión. Permite registrar, iniciar y cerrar sesión, recuperar una sesión anterior y mantener actualizado el correo de la cuenta conectada.
+### Navegación
 
-### `src/database`
+`src/app` contiene las rutas de Expo Router. `_layout.tsx` registra las pantallas y el menú común de los módulos privados.
 
-- `database.ts`: crea las tablas, ejecuta migraciones y registra el administrador inicial.
-- `password.ts`: protege contraseñas con un salt aleatorio y SHA-256.
-- `purchases.ts`: contiene las transacciones de compra y mantiene sincronizados stock, encabezados, detalles y totales.
+### Autenticación
 
-## Base de datos
+`src/context/auth-context.tsx` integra Supabase Auth, restaura la sesión, valida el perfil público y controla los estados pendiente, activo e inactivo.
 
-- **Login:** credenciales, estado y rol.
-- **Cliente:** datos personales relacionados con una cuenta.
-- **Producto:** nombre, descripción, precio y stock.
-- **Encabezado:** cliente, fecha y total de una compra.
-- **Detalles:** productos, cantidades y subtotales de la compra.
-- **Sesion:** conserva la cuenta conectada.
+### Acceso a datos
 
-## Reglas principales
+- `src/lib/supabase.ts` inicializa el SDK con variables de entorno.
+- `src/database/purchases.ts` invoca funciones PostgreSQL para operaciones transaccionales.
+- `src/types/database.ts` define los tipos de tablas y funciones remotas.
 
-1. Una cuenta nueva queda pendiente hasta que un administrador la procese.
-2. Una cuenta pendiente o inactiva no puede iniciar sesión.
-3. El cliente debe completar su perfil en el primer ingreso.
-4. El cliente solo puede consultar sus propios datos y compras.
-5. No se puede comprar una cantidad superior al stock disponible.
-6. Cada compra se registra mediante una transacción para evitar datos incompletos.
-7. Al editar o eliminar detalles se ajusta el stock y se recalcula el total.
-8. Los clientes o productos con historial no se eliminan, para conservar las relaciones.
+### Base de datos
 
-## Archivos de configuración
+Las migraciones se encuentran en `supabase/migrations` y crean:
 
-- `app.json`: configuración general de Expo, plataformas y complemento de SQLite.
-- `package.json`: dependencias y comandos del proyecto.
-- `metro.config.js`: soporte de SQLite WebAssembly y encabezados necesarios en web.
-- `tsconfig.json`: configuración de TypeScript y alias de importación.
-- `.gitignore`: excluye dependencias, compilaciones y archivos temporales.
+1. `perfiles`
+2. `clientes`
+3. `productos`
+4. `encabezados`
+5. `detalles`
 
-Los archivos JSON no admiten comentarios. Por eso se explican aquí en lugar de modificarlos y arriesgar que Expo deje de leerlos.
+El modelo utiliza PK, FK, restricciones, índices y columnas calculadas. Los detalles pertenecen a un encabezado y cada encabezado pertenece a un cliente.
 
-## Ejecución en web
+## Operaciones de compra
 
-Para conservar la misma base de datos del navegador se debe usar siempre el mismo navegador, perfil y puerto:
+Las funciones PostgreSQL realizan atómicamente las operaciones sensibles:
 
-```powershell
-npx expo start --clear --port 8082
+- Crear una compra.
+- Descontar existencias.
+- Actualizar cantidades.
+- Agregar o eliminar detalles.
+- Recalcular el total.
+- Eliminar una compra y restaurar el inventario.
+
+Si una validación falla, PostgreSQL revierte la operación completa.
+
+## Seguridad
+
+- Supabase almacena y protege las contraseñas.
+- La aplicación utiliza únicamente la clave publicable.
+- Las variables se cargan desde `.env`.
+- Las cinco tablas públicas tienen RLS habilitado.
+- Las políticas separan permisos de administrador y cliente.
+- Las funciones sensibles validan el usuario conectado.
+- Las funciones `security definer` fijan un `search_path` vacío.
+- No se documentan ni almacenan contraseñas en el repositorio.
+
+## Reglas funcionales
+
+1. Una cuenta nueva inicia pendiente de aprobación.
+2. Una cuenta pendiente o inactiva no entra al sistema.
+3. El cliente completa su perfil después de ser aprobado.
+4. Un cliente solo consulta sus datos y compras.
+5. El stock nunca puede quedar negativo.
+6. Una compra debe contener al menos un detalle.
+7. Los totales se calculan a partir de los detalles.
+8. Eliminar una compra devuelve las unidades al inventario.
+9. Un producto incluido en compras no se elimina directamente.
+10. Una cuenta cliente con historial de compras no se elimina.
+
+## Configuración
+
+`.env` debe contener:
+
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://TU_PROYECTO.supabase.co
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=TU_CLAVE_PUBLICABLE
 ```
 
-Abrir una sola pestaña en `http://localhost:8082`. SQLite web guarda los datos de forma separada para cada puerto.
+Las variables `EXPO_PUBLIC_` son visibles en el cliente, por lo que nunca deben contener la clave `service_role` ni otra credencial privada.
 
-## Administrador inicial
+## Ejecución
 
-- Correo: `davidnaranjo337@gmail.com`
-- Contraseña: `123456`
+```powershell
+npm install
+npm start
+```
 
+La aplicación puede abrirse con Expo Go o en web. En modo LAN, el dispositivo y el computador deben compartir la red y Metro debe permanecer abierto.
+
+## Calidad
+
+Antes de una entrega se ejecutan:
+
+```powershell
+npm run typecheck
+npm run lint
+npm run doctor
+npm run test:rls
+```
+
+También se verifica manualmente el diseño en móvil y web, el comportamiento del teclado, los estados vacíos, el flujo de aprobación y la integridad del inventario.
+
+## Evidencias recomendadas
+
+- Tabla Editor con las cinco tablas.
+- Diagrama de relaciones.
+- Authentication con usuarios de prueba.
+- Políticas RLS activas.
+- Resultado de las pruebas de seguridad.
+- Flujo de registro, aprobación e inicio de sesión.
+- CRUD de productos.
+- Compra y actualización del stock.
+- Panel de estadísticas.

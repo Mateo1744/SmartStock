@@ -114,7 +114,7 @@ export default function AboutScreen() {
         </View>
 
         <Text style={styles.footerText}>
-          Desarrollado con Expo, React Native, TypeScript y SQLite.
+          Desarrollado con Expo, React Native, TypeScript y Supabase.
         </Text>
       </ScrollView>
     </SafeAreaView>

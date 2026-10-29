@@ -1,16 +1,16 @@
 /**
  * RESUMEN DEL ARCHIVO
- * Presenta estadísticas calculadas con la información guardada en SQLite.
+ * Presenta estadísticas calculadas con la información guardada en Supabase.
  * Esta pantalla es privada y únicamente puede verla un administrador.
  */
 
 import { useCallback, useEffect, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/context/auth-context';
+import { supabase } from '@/lib/supabase';
 
 // Totales generales que aparecen en las tarjetas superiores.
 type Summary = {
@@ -32,12 +32,6 @@ type TopProduct = {
 type MonthlyIncome = {
   key: string;
   label: string;
-  ingresos: number;
-};
-
-// Forma que devuelve SQLite antes de completar los meses sin ventas.
-type MonthlyIncomeRow = {
-  mes: string;
   ingresos: number;
 };
 
@@ -90,7 +84,6 @@ function getLastSixMonths(): MonthlyIncome[] {
 }
 
 export default function StatisticsScreen() {
-  const db = useSQLiteContext();
   const { user, loading: authLoading } = useAuth();
   const [summary, setSummary] = useState<Summary>({
     compras: 0,
@@ -114,75 +107,61 @@ export default function StatisticsScreen() {
       setLoading(true);
       setError('');
 
-      // Encabezado permite contar compras, sumar ingresos y clientes compradores.
-      const purchaseSummary = await db.getFirstAsync<{
-        compras: number;
-        ingresos: number;
-        clientes: number;
-      }>(`
-        SELECT
-          COUNT(*) AS compras,
-          COALESCE(SUM(total), 0) AS ingresos,
-          COUNT(DISTINCT id_cliente) AS clientes
-        FROM Encabezado
-      `);
+      const [headersResult, detailsResult, productsResult] = await Promise.all([
+        supabase.from('encabezados').select('id, id_cliente, fecha, total'),
+        supabase.from('detalles').select('id_producto, cantidad, valor'),
+        supabase
+          .from('productos')
+          .select('id, nombre, stock')
+          .order('stock', { ascending: true })
+          .order('nombre', { ascending: true }),
+      ]);
+      if (headersResult.error) throw headersResult.error;
+      if (detailsResult.error) throw detailsResult.error;
+      if (productsResult.error) throw productsResult.error;
 
-      // Detalles permite sumar todas las unidades vendidas.
-      const unitSummary = await db.getFirstAsync<{ unidades: number }>(`
-        SELECT COALESCE(SUM(cantidad), 0) AS unidades
-        FROM Detalles
-      `);
+      const headers = headersResult.data;
+      const details = detailsResult.data;
+      const productsById = new Map(productsResult.data.map((product) => [product.id, product]));
 
-      // Agrupa los detalles por producto para construir el ranking de ventas.
-      const products = await db.getAllAsync<TopProduct>(`
-        SELECT
-          p.id,
-          p.nombre,
-          COALESCE(SUM(d.cantidad), 0) AS unidades,
-          COALESCE(SUM(d.valor), 0) AS ingresos
-        FROM Producto p
-        INNER JOIN Detalles d ON d.id_producto = p.id
-        GROUP BY p.id, p.nombre
-        ORDER BY unidades DESC, ingresos DESC, p.nombre COLLATE NOCASE
-        LIMIT 8
-      `);
+      const ranking = new Map<number, TopProduct>();
+      details.forEach((detail) => {
+        const product = productsById.get(detail.id_producto);
+        if (!product) return;
+        const current = ranking.get(product.id) ?? {
+          id: product.id,
+          nombre: product.nombre,
+          unidades: 0,
+          ingresos: 0,
+        };
+        current.unidades += detail.cantidad;
+        current.ingresos += Number(detail.valor);
+        ranking.set(product.id, current);
+      });
+      const products = [...ranking.values()]
+        .sort((a, b) => b.unidades - a.unidades || b.ingresos - a.ingresos || a.nombre.localeCompare(b.nombre, 'es'))
+        .slice(0, 8);
 
-      // Consulta los ingresos de cada mes dentro del periodo que mostrará la gráfica.
       const months = getLastSixMonths();
-      const monthlyRows = await db.getAllAsync<MonthlyIncomeRow>(
-        `SELECT
-          substr(fecha, 1, 7) AS mes,
-          COALESCE(SUM(total), 0) AS ingresos
-        FROM Encabezado
-        WHERE substr(fecha, 1, 7) BETWEEN ? AND ?
-        GROUP BY substr(fecha, 1, 7)
-        ORDER BY mes`,
-        months[0].key,
-        months[months.length - 1].key
-      );
-
-      // Relaciona la respuesta con los seis meses para conservar también los valores en cero.
-      const incomeByMonth = new Map(
-        monthlyRows.map((month) => [month.mes, Number(month.ingresos)])
-      );
+      const incomeByMonth = new Map<string, number>();
+      headers.forEach((header) => {
+        const date = new Date(header.fecha);
+        if (Number.isNaN(date.getTime())) return;
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        incomeByMonth.set(key, (incomeByMonth.get(key) ?? 0) + Number(header.total));
+      });
       const completedMonthlyIncome = months.map((month) => ({
         ...month,
         ingresos: incomeByMonth.get(month.key) ?? 0,
       }));
 
-      // Detecta existencias bajas para ayudar a reabastecer el inventario.
-      const lowStock = await db.getAllAsync<LowStockProduct>(`
-        SELECT id, nombre, stock
-        FROM Producto
-        WHERE stock <= 5
-        ORDER BY stock ASC, nombre COLLATE NOCASE
-      `);
+      const lowStock: LowStockProduct[] = productsResult.data.filter((product) => product.stock <= 5);
 
       setSummary({
-        compras: purchaseSummary?.compras ?? 0,
-        ingresos: purchaseSummary?.ingresos ?? 0,
-        clientes: purchaseSummary?.clientes ?? 0,
-        unidades: unitSummary?.unidades ?? 0,
+        compras: headers.length,
+        ingresos: headers.reduce((sum, header) => sum + Number(header.total), 0),
+        clientes: new Set(headers.map((header) => header.id_cliente)).size,
+        unidades: details.reduce((sum, detail) => sum + detail.cantidad, 0),
       });
       setTopProducts(products);
       setMonthlyIncome(completedMonthlyIncome);
@@ -192,7 +171,7 @@ export default function StatisticsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [db, user?.rol]);
+  }, [user?.rol]);
 
   // Protege la ruta para que solo el administrador pueda consultarla.
   useEffect(() => {

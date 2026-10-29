@@ -1,43 +1,19 @@
-/**
- * RESUMEN DEL ARCHIVO
- * Centraliza la autenticación. Recupera la sesión guardada, inicia sesión,
- * registra cuentas pendientes, actualiza el correo y cierra la sesión.
- */
-
-// PropsWithChildren describe un componente que envuelve otras pantallas.
+import type { Session } from '@supabase/supabase-js';
 import type { PropsWithChildren } from 'react';
-// Herramientas de React para compartir y actualizar el estado de sesión.
 import { createContext, useContext, useEffect, useState } from 'react';
-// Permite usar la misma conexión SQLite abierta en el layout principal.
-import { useSQLiteContext } from 'expo-sqlite';
 
-// Funciones para nunca guardar contraseñas en texto plano.
-import { createSalt, hashPassword } from '@/database/password';
+import { supabase } from '@/lib/supabase';
 
-// Roles válidos dentro de la aplicación.
 export type UserRole = 'admin' | 'cliente';
 
-// Datos mínimos que necesita la interfaz sobre el usuario conectado.
 export type AuthUser = {
-  id: number;
+  id: string;
   correo: string;
   rol: UserRole;
 };
 
-// Respuesta común de los procesos de ingreso y registro.
-type AuthResult = {
-  ok: boolean;
-  message: string;
-};
+type AuthResult = { ok: boolean; message: string };
 
-// Columnas adicionales usadas para validar el inicio de sesión.
-type LoginRow = AuthUser & {
-  password_hash: string;
-  salt: string;
-  estado: 'pendiente' | 'activo' | 'inactivo';
-};
-
-// Funciones y datos que estarán disponibles en todas las pantallas.
 type AuthContextValue = {
   user: AuthUser | null;
   loading: boolean;
@@ -47,139 +23,187 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
 };
 
-// El contexto comienza vacío hasta quedar dentro de AuthProvider.
+type ProfileRow = {
+  rol: UserRole;
+  estado: 'pendiente' | 'activo' | 'inactivo';
+};
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// Quita espacios y unifica el correo en minúsculas.
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+function authErrorMessage(message: string) {
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes('invalid login credentials')) {
+    return 'El correo o la contraseña son incorrectos.';
+  }
+  if (normalized.includes('email not confirmed')) {
+    return 'Debes confirmar tu correo electrónico antes de iniciar sesión.';
+  }
+  if (normalized.includes('user already registered')) {
+    return 'Ya existe una cuenta registrada con ese correo.';
+  }
+  if (normalized.includes('rate limit') || normalized.includes('over_email_send_rate_limit')) {
+    return 'Supabase alcanzó temporalmente el límite de correos de confirmación. Espera unos minutos antes de intentar nuevamente.';
+  }
+  if (normalized.includes('signup is disabled') || normalized.includes('signups not allowed')) {
+    return 'El registro de usuarios está desactivado en Supabase Auth.';
+  }
+  if (normalized.includes('database error saving new user')) {
+    return 'Supabase no pudo crear el perfil automático del usuario (Database error saving new user). Revisa el trigger crear_perfil_usuario.';
+  }
+  if (normalized.includes('network request failed') || normalized.includes('failed to fetch')) {
+    return 'No fue posible conectarse con Supabase. Revisa la conexión a internet e inténtalo nuevamente.';
+  }
+  if (normalized.includes('invalid email')) {
+    return 'Supabase rechazó el formato del correo electrónico.';
+  }
+  if (normalized.includes('password')) {
+    return 'La contraseña no cumple los requisitos de seguridad.';
+  }
+
+  return `Supabase respondió: ${message}`;
+}
+
+async function getAuthorizedUser(session: Session): Promise<{
+  user: AuthUser | null;
+  message?: string;
+}> {
+  const { data: profile, error } = await supabase
+    .from('perfiles')
+    .select('rol, estado')
+    .eq('id', session.user.id)
+    .maybeSingle<ProfileRow>();
+
+  if (error) throw error;
+
+  if (!profile) {
+    return { user: null, message: 'No se encontró el perfil asociado a esta cuenta.' };
+  }
+  if (profile.estado === 'pendiente') {
+    return {
+      user: null,
+      message: 'Tu cuenta está pendiente de aprobación por un administrador.',
+    };
+  }
+  if (profile.estado !== 'activo') {
+    return { user: null, message: 'Tu cuenta está inactiva. Contacta al administrador.' };
+  }
+
+  return {
+    user: {
+      id: session.user.id,
+      correo: normalizeEmail(session.user.email ?? ''),
+      rol: profile.rol,
+    },
+  };
+}
+
 export function AuthProvider({ children }: PropsWithChildren) {
-  // Obtiene la conexión compartida con SQLite.
-  const db = useSQLiteContext();
-  // Guarda el usuario actual; null significa que no hay sesión.
   const [user, setUser] = useState<AuthUser | null>(null);
-  // Evita redireccionar antes de consultar la sesión guardada.
   const [loading, setLoading] = useState(true);
 
-  // Este efecto se ejecuta al iniciar la aplicación.
   useEffect(() => {
-    // Busca la sesión número 1 y la relaciona con su cuenta.
+    let active = true;
+
     async function restoreSession() {
       try {
-        const savedUser = await db.getFirstAsync<AuthUser & { estado: string }>(`
-          SELECT l.id, l.correo, l.rol, l.estado
-          FROM Sesion s
-          INNER JOIN Login l ON l.id = s.id_login
-          WHERE s.id = 1
-        `);
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
 
-        // Solo restaura cuentas que todavía estén activas.
-        if (savedUser?.estado === 'activo') {
-          setUser({ id: savedUser.id, correo: savedUser.correo, rol: savedUser.rol });
-        } else {
-          // Elimina sesiones inválidas, inactivas o huérfanas.
-          await db.runAsync('DELETE FROM Sesion');
+        if (!data.session) {
+          if (active) setUser(null);
+          return;
         }
+
+        const result = await getAuthorizedUser(data.session);
+        if (!active) return;
+
+        setUser(result.user);
+        if (!result.user) await supabase.auth.signOut();
+      } catch {
+        if (active) setUser(null);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     }
 
-    restoreSession();
-  }, [db]);
+    void restoreSession();
 
-  // Valida las credenciales y crea la sesión local.
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+      if (event === 'SIGNED_OUT' || !session) {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
   async function signIn(email: string, password: string): Promise<AuthResult> {
-    // Normaliza el correo para que espacios o mayúsculas no afecten la búsqueda.
-    const normalizedEmail = normalizeEmail(email);
-    // Consulta la cuenta asociada al correo.
-    const account = await db.getFirstAsync<LoginRow>(
-      `SELECT id, correo, password_hash, salt, estado, rol
-       FROM Login
-       WHERE correo = ?`,
-      normalizedEmail
-    );
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: normalizeEmail(email),
+      password,
+    });
 
-    // No se revela si el problema fue específicamente el correo.
-    if (!account) {
-      return { ok: false, message: 'El correo o la contraseña son incorrectos.' };
-    }
-
-    // Calcula el hash recibido usando el salt guardado.
-    const passwordHash = await hashPassword(password, account.salt);
-    if (passwordHash !== account.password_hash) {
-      return { ok: false, message: 'El correo o la contraseña son incorrectos.' };
-    }
-
-    // Una cuenta nueva no ingresa hasta ser aprobada.
-    if (account.estado === 'pendiente') {
+    if (error || !data.session) {
       return {
         ok: false,
-        message: 'Tu cuenta está pendiente de aprobación por un administrador.',
+        message: authErrorMessage(error?.message ?? 'No se creó una sesión.'),
       };
     }
 
-    // También se bloquean las cuentas rechazadas o inactivadas.
-    if (account.estado !== 'activo') {
-      return { ok: false, message: 'Tu cuenta está inactiva. Contacta al administrador.' };
+    try {
+      const result = await getAuthorizedUser(data.session);
+      if (!result.user) {
+        await supabase.auth.signOut();
+        return { ok: false, message: result.message ?? 'La cuenta no está habilitada.' };
+      }
+
+      setUser(result.user);
+      return { ok: true, message: 'Inicio de sesión exitoso.' };
+    } catch {
+      await supabase.auth.signOut();
+      return { ok: false, message: 'No fue posible validar el estado de la cuenta.' };
     }
-
-    // Solo se permite una sesión local: se reemplaza la anterior.
-    await db.runAsync('DELETE FROM Sesion');
-    await db.runAsync('INSERT INTO Sesion (id, id_login) VALUES (1, ?)', account.id);
-
-    setUser({ id: account.id, correo: account.correo, rol: account.rol });
-    return { ok: true, message: 'Inicio de sesión exitoso.' };
   }
 
-  // Crea una cuenta cliente en estado pendiente.
   async function register(email: string, password: string): Promise<AuthResult> {
-    const normalizedEmail = normalizeEmail(email);
-    // Impide registrar dos veces el mismo correo.
-    const existingAccount = await db.getFirstAsync<{ id: number }>(
-      'SELECT id FROM Login WHERE correo = ?',
-      normalizedEmail
-    );
+    const { data, error } = await supabase.auth.signUp({
+      email: normalizeEmail(email),
+      password,
+    });
 
-    if (existingAccount) {
-      return { ok: false, message: 'Ya existe una cuenta registrada con ese correo.' };
-    }
-
-    // Protege la contraseña antes de insertarla.
-    const salt = await createSalt();
-    const passwordHash = await hashPassword(password, salt);
-
-    // Todas las cuentas públicas nacen como cliente pendiente.
-    await db.runAsync(
-      `INSERT INTO Login (correo, password_hash, salt, estado, rol)
-       VALUES (?, ?, ?, 'pendiente', 'cliente')`,
-      normalizedEmail,
-      passwordHash,
-      salt
-    );
+    if (error) return { ok: false, message: authErrorMessage(error.message) };
+    if (data.session) await supabase.auth.signOut();
 
     return {
       ok: true,
-      message: 'Registro exitoso. Tu cuenta debe ser aprobada por un administrador.',
+      message: data.session
+        ? 'Registro exitoso. Tu cuenta debe ser aprobada por un administrador.'
+        : 'Registro exitoso. Confirma tu correo y espera la aprobación del administrador.',
     };
   }
 
-  // Borra la sesión persistente y limpia el usuario de React.
   async function signOut() {
-    await db.runAsync('DELETE FROM Sesion');
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setUser(null);
   }
 
-  // Mantiene el contexto sincronizado cuando el usuario cambia su correo.
   function updateCurrentUserEmail(email: string) {
-    setUser((currentUser) =>
-      currentUser ? { ...currentUser, correo: normalizeEmail(email) } : currentUser
+    setUser((current) =>
+      current ? { ...current, correo: normalizeEmail(email) } : current
     );
   }
 
-  // Comparte datos y acciones con todos los componentes hijos.
   return (
     <AuthContext.Provider
       value={{ user, loading, signIn, register, updateCurrentUserEmail, signOut }}>
@@ -188,14 +212,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   );
 }
 
-// Hook corto para consumir el contexto desde cualquier pantalla.
 export function useAuth() {
   const context = useContext(AuthContext);
-
-  // Ayuda a detectar si alguien usa el hook fuera de AuthProvider.
-  if (!context) {
-    throw new Error('useAuth debe utilizarse dentro de AuthProvider.');
-  }
-
+  if (!context) throw new Error('useAuth debe utilizarse dentro de AuthProvider.');
   return context;
 }

@@ -8,8 +8,6 @@
 import { useCallback, useEffect, useState } from 'react';
 // Herramientas de navegación y recarga al regresar a la pantalla.
 import { router, useFocusEffect } from 'expo-router';
-// Conexión SQLite compartida por la aplicación.
-import { useSQLiteContext } from 'expo-sqlite';
 import {
   ActivityIndicator,
   Pressable,
@@ -21,17 +19,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Entrega el usuario actual y permite sincronizar su correo.
+// Entrega el usuario actual.
 import { useAuth } from '@/context/auth-context';
+import { supabase } from '@/lib/supabase';
 
 // Columnas mostradas por cada tarjeta de cliente.
 type Client = {
   id: number;
-  id_login: number;
+  id_usuario: string;
   nombre: string;
   apellido: string;
   correo: string;
-  fecha: string;
+  fecha_creacion: string;
   estado: 'activo' | 'inactivo';
   compras: number;
 };
@@ -42,9 +41,9 @@ type Message = {
   text: string;
 };
 
-// Convierte la fecha de SQLite a un texto entendible en español.
+// Convierte la fecha de Supabase a un texto entendible en español.
 function formatDate(value: string) {
-  const date = new Date(`${value.replace(' ', 'T')}Z`);
+  const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return value;
@@ -58,9 +57,7 @@ function formatDate(value: string) {
 }
 
 export default function ClientsScreen() {
-  // Servicios compartidos de base de datos y autenticación.
-  const db = useSQLiteContext();
-  const { user, loading: authLoading, updateCurrentUserEmail } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   // Estados de datos, carga, edición, eliminación y mensajes.
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,29 +81,50 @@ export default function ClientsScreen() {
     try {
       setLoading(true);
 
-      // La consulta une Login para conocer el estado y cuenta las compras.
-      const sql = `
-        SELECT
-          c.id,
-          c.id_login,
-          c.nombre,
-          c.apellido,
-          c.correo,
-          c.fecha,
-          l.estado,
-          COUNT(e.id) AS compras
-        FROM Cliente c
-        INNER JOIN Login l ON l.id = c.id_login
-        LEFT JOIN Encabezado e ON e.id_cliente = c.id
-        ${isAdmin ? '' : 'WHERE c.id_login = ?'}
-        GROUP BY c.id, c.id_login, c.nombre, c.apellido, c.correo, c.fecha, l.estado
-        ORDER BY c.nombre COLLATE NOCASE, c.apellido COLLATE NOCASE
-      `;
+      let clientsQuery = supabase
+        .from('clientes')
+        .select('id, id_usuario, nombre, apellido, fecha_creacion')
+        .order('nombre', { ascending: true })
+        .order('apellido', { ascending: true });
 
-      // El parámetro user.id solo se usa cuando la sesión pertenece a un cliente.
-      const rows = isAdmin
-        ? await db.getAllAsync<Client>(sql)
-        : await db.getAllAsync<Client>(sql, user.id);
+      if (!isAdmin) clientsQuery = clientsQuery.eq('id_usuario', user.id);
+
+      const { data: clientRows, error: clientsError } = await clientsQuery;
+      if (clientsError) throw clientsError;
+
+      const userIds = clientRows.map((client) => client.id_usuario);
+      const clientIds = clientRows.map((client) => client.id);
+
+      const [profilesResult, purchasesResult] = await Promise.all([
+        userIds.length
+          ? supabase.from('perfiles').select('id, correo, estado').in('id', userIds)
+          : Promise.resolve({ data: [], error: null }),
+        clientIds.length
+          ? supabase.from('encabezados').select('id_cliente').in('id_cliente', clientIds)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+
+      if (profilesResult.error) throw profilesResult.error;
+      if (purchasesResult.error) throw purchasesResult.error;
+
+      const profiles = new Map(profilesResult.data.map((profile) => [profile.id, profile]));
+      const purchaseCounts = new Map<number, number>();
+      purchasesResult.data.forEach((purchase) => {
+        purchaseCounts.set(
+          purchase.id_cliente,
+          (purchaseCounts.get(purchase.id_cliente) ?? 0) + 1
+        );
+      });
+
+      const rows: Client[] = clientRows.map((client) => {
+        const profile = profiles.get(client.id_usuario);
+        return {
+          ...client,
+          correo: profile?.correo ?? 'Correo no disponible',
+          estado: profile?.estado === 'inactivo' ? 'inactivo' : 'activo',
+          compras: purchaseCounts.get(client.id) ?? 0,
+        };
+      });
 
       // Un cliente sin perfil debe completar primero sus datos.
       if (!isAdmin && rows.length === 0) {
@@ -120,7 +138,7 @@ export default function ClientsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [db, isAdmin, user]);
+  }, [isAdmin, user]);
 
   // Protege la ruta cuando no existe una sesión.
   useEffect(() => {
@@ -163,7 +181,7 @@ export default function ClientsScreen() {
     const cleanEmail = editEmail.trim().toLowerCase();
 
     // Impide que un cliente intente modificar otra cuenta.
-    if (!user || (!isAdmin && client.id_login !== user.id)) {
+    if (!user || (!isAdmin && client.id_usuario !== user.id)) {
       return;
     }
 
@@ -172,43 +190,24 @@ export default function ClientsScreen() {
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setMessage({ type: 'error', text: 'Escribe un correo electrónico válido.' });
-      return;
-    }
-
     try {
       setProcessingId(client.id);
       setMessage(null);
 
-      // Verifica que el nuevo correo no pertenezca a otra cuenta.
-      const emailInUse = await db.getFirstAsync<{ id: number }>(
-        'SELECT id FROM Login WHERE correo = ? AND id <> ?',
-        cleanEmail,
-        client.id_login
-      );
-
-      if (emailInUse) {
-        setMessage({ type: 'error', text: 'Ya existe otra cuenta registrada con ese correo.' });
+      if (cleanEmail !== client.correo) {
+        setMessage({
+          type: 'error',
+          text: 'Por seguridad, el correo de acceso se cambia desde Supabase Auth.',
+        });
         return;
       }
 
-      // Ambas tablas deben conservar siempre el mismo correo.
-      await db.withTransactionAsync(async () => {
-        await db.runAsync(
-          'UPDATE Cliente SET nombre = ?, apellido = ?, correo = ? WHERE id = ?',
-          cleanName,
-          cleanLastName,
-          cleanEmail,
-          client.id
-        );
-        await db.runAsync('UPDATE Login SET correo = ? WHERE id = ?', cleanEmail, client.id_login);
-      });
+      const { error } = await supabase
+        .from('clientes')
+        .update({ nombre: cleanName, apellido: cleanLastName })
+        .eq('id', client.id);
 
-      // Si se editó la cuenta actual, también actualiza el contexto en memoria.
-      if (client.id_login === user.id) {
-        updateCurrentUserEmail(cleanEmail);
-      }
+      if (error) throw error;
 
       cancelEditing();
       setMessage({ type: 'success', text: 'Los datos del cliente fueron actualizados.' });
@@ -233,11 +232,13 @@ export default function ClientsScreen() {
       setMessage(null);
       setDeleteId(null);
 
-      await db.runAsync(
-        "UPDATE Login SET estado = ? WHERE id = ? AND rol = 'cliente'",
-        newStatus,
-        client.id_login
-      );
+      const { error } = await supabase
+        .from('perfiles')
+        .update({ estado: newStatus })
+        .eq('id', client.id_usuario)
+        .eq('rol', 'cliente');
+
+      if (error) throw error;
 
       setMessage({
         type: 'success',
@@ -283,10 +284,14 @@ export default function ClientsScreen() {
       setMessage(null);
 
       // Vuelve a comprobar la existencia de compras justo antes de eliminar.
-      const purchase = await db.getFirstAsync<{ id: number }>(
-        'SELECT id FROM Encabezado WHERE id_cliente = ? LIMIT 1',
-        client.id
-      );
+      const { data: purchase, error: purchaseError } = await supabase
+        .from('encabezados')
+        .select('id')
+        .eq('id_cliente', client.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (purchaseError) throw purchaseError;
 
       if (purchase) {
         setDeleteId(null);
@@ -298,11 +303,11 @@ export default function ClientsScreen() {
         return;
       }
 
-      // La regla CASCADE elimina Cliente al borrar su Login.
-      await db.runAsync(
-        "DELETE FROM Login WHERE id = ? AND rol = 'cliente'",
-        client.id_login
-      );
+      const { error } = await supabase.rpc('eliminar_cuenta_cliente', {
+        p_usuario_id: client.id_usuario,
+      });
+
+      if (error) throw error;
 
       setDeleteId(null);
       setMessage({ type: 'success', text: 'El cliente y su cuenta fueron eliminados.' });
@@ -394,7 +399,7 @@ export default function ClientsScreen() {
                     </View>
                   </View>
 
-                  <Text style={styles.date}>Cliente desde: {formatDate(client.fecha)}</Text>
+                  <Text style={styles.date}>Cliente desde: {formatDate(client.fecha_creacion)}</Text>
 
                   {isEditing ? (
                     <View style={styles.editForm}>

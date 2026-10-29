@@ -13,7 +13,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useAuth } from '@/context/auth-context';
 
 export default function IndexScreen() {
-  // user contiene la cuenta activa y loading indica si todavía se consulta SQLite.
+  // user contiene la cuenta activa y loading indica si todavía se restaura la sesión.
   const { user, loading } = useAuth();
 
   // Mientras se recupera la sesión guardada se muestra una animación de carga.

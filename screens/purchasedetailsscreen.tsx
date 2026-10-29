@@ -8,8 +8,6 @@
 import { useCallback, useEffect, useState } from 'react';
 // Navegación, recarga por enfoque y lectura del id enviado en la URL.
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-// Conexión SQLite compartida.
-import { useSQLiteContext } from 'expo-sqlite';
 import {
   ActivityIndicator,
   Pressable,
@@ -28,6 +26,7 @@ import {
   deletePurchaseDetail,
   updateDetailQuantity,
 } from '@/database/purchases';
+import { supabase } from '@/lib/supabase';
 
 // Información general de la compra y de su propietario.
 type PurchaseHeader = {
@@ -37,7 +36,6 @@ type PurchaseHeader = {
   nombre: string;
   apellido: string;
   correo: string;
-  id_login: number;
 };
 
 // Producto ya incluido en la compra.
@@ -72,17 +70,16 @@ function formatMoney(value: number) {
   }).format(value);
 }
 
-// Convierte la fecha guardada por SQLite a fecha y hora local.
+// Convierte la fecha guardada por Supabase a fecha y hora local.
 function formatDate(value: string) {
-  const date = new Date(`${value.replace(' ', 'T')}Z`);
+  const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? value
     : date.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 export default function PurchaseDetailsScreen() {
-  // Lee la conexión y el parámetro id de la ruta /detalles.
-  const db = useSQLiteContext();
+  // Lee el parámetro id de la ruta /detalles.
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   // Expo Router puede entregar uno o varios valores; aquí se toma solo el primero.
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -119,62 +116,85 @@ export default function PurchaseDetailsScreen() {
 
     try {
       setLoading(true);
-      // Une Encabezado y Cliente para conocer el dueño de la compra.
-      const purchase = await db.getFirstAsync<PurchaseHeader>(
-        `SELECT e.id, e.fecha, e.total, c.nombre, c.apellido, c.correo, c.id_login
-         FROM Encabezado e
-         INNER JOIN Cliente c ON c.id = e.id_cliente
-         WHERE e.id = ?`,
-        purchaseId
-      );
+      // RLS impide que un cliente obtenga compras pertenecientes a otra cuenta.
+      const { data: headerRow, error: headerError } = await supabase
+        .from('encabezados')
+        .select('id, id_cliente, fecha, total')
+        .eq('id', purchaseId)
+        .maybeSingle();
+      if (headerError) throw headerError;
 
-      // Informa si alguien intenta abrir una compra inexistente.
-      if (!purchase) {
+      if (!headerRow) {
         setHeader(null);
-        setMessage({ type: 'error', text: 'La compra no existe.' });
+        setMessage({ type: 'error', text: 'La compra no existe o no tienes permiso para verla.' });
         return;
       }
 
-      // Un cliente nunca puede consultar compras de otra cuenta.
-      if (!isAdmin && purchase.id_login !== user.id) {
-        router.replace('/encabezados');
-        return;
-      }
+      const [clientResult, detailsResult, productsResult] = await Promise.all([
+        supabase
+          .from('clientes')
+          .select('id_usuario, nombre, apellido')
+          .eq('id', headerRow.id_cliente)
+          .single(),
+        supabase
+          .from('detalles')
+          .select('id, id_producto, cantidad, valor')
+          .eq('id_encabezado', purchaseId),
+        supabase
+          .from('productos')
+          .select('id, nombre, valor_unitario, stock')
+          .order('nombre', { ascending: true }),
+      ]);
+      if (clientResult.error) throw clientResult.error;
+      if (detailsResult.error) throw detailsResult.error;
+      if (productsResult.error) throw productsResult.error;
 
-      // Consulta los detalles con nombre y stock actual del producto.
-      const rows = await db.getAllAsync<PurchaseDetail>(
-        `SELECT d.id, d.id_producto, p.nombre, d.cantidad, d.valor, p.stock
-         FROM Detalles d
-         INNER JOIN Producto p ON p.id = d.id_producto
-         WHERE d.id_encabezado = ?
-         ORDER BY p.nombre COLLATE NOCASE`,
-        purchaseId
+      const profileResult = isAdmin
+        ? await supabase
+            .from('perfiles')
+            .select('correo')
+            .eq('id', clientResult.data.id_usuario)
+            .maybeSingle()
+        : { data: null, error: null };
+      if (profileResult.error) throw profileResult.error;
+
+      const productsById = new Map(productsResult.data.map((product) => [product.id, product]));
+      const includedProductIds = new Set(detailsResult.data.map((detail) => detail.id_producto));
+      const rows: PurchaseDetail[] = detailsResult.data.flatMap((detail) => {
+        const product = productsById.get(detail.id_producto);
+        if (!product) return [];
+        return [{
+          id: detail.id,
+          id_producto: detail.id_producto,
+          nombre: product.nombre,
+          cantidad: detail.cantidad,
+          valor: Number(detail.valor),
+          stock: product.stock,
+        }];
+      });
+
+      setHeader({
+        id: headerRow.id,
+        fecha: headerRow.fecha,
+        total: Number(headerRow.total),
+        nombre: clientResult.data.nombre,
+        apellido: clientResult.data.apellido,
+        correo: profileResult.data?.correo ?? 'Correo no disponible',
+      });
+      setDetails(rows.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')));
+      setAvailableProducts(
+        isAdmin
+          ? productsResult.data
+              .filter((product) => product.stock > 0 && !includedProductIds.has(product.id))
+              .map((product) => ({ ...product, valor_unitario: Number(product.valor_unitario) }))
+          : []
       );
-
-      // Solo el administrador necesita la lista para agregar nuevos detalles.
-      const products = isAdmin
-        ? await db.getAllAsync<AvailableProduct>(
-            `SELECT p.id, p.nombre, p.valor_unitario, p.stock
-             FROM Producto p
-             WHERE p.stock > 0
-               AND NOT EXISTS (
-                 SELECT 1 FROM Detalles d
-                 WHERE d.id_encabezado = ? AND d.id_producto = p.id
-               )
-             ORDER BY p.nombre COLLATE NOCASE`,
-            purchaseId
-          )
-        : [];
-
-      setHeader(purchase);
-      setDetails(rows);
-      setAvailableProducts(products);
     } catch {
       setMessage({ type: 'error', text: 'No fue posible cargar los detalles de la compra.' });
     } finally {
       setLoading(false);
     }
-  }, [db, isAdmin, purchaseId, user]);
+  }, [isAdmin, purchaseId, user]);
 
   // Protege la ruta cuando no hay sesión.
   useEffect(() => {
@@ -210,7 +230,7 @@ export default function PurchaseDetailsScreen() {
     try {
       setProcessingId(detail.id);
       setMessage(null);
-      await updateDetailQuantity(db, detail.id, Number(editQuantity));
+      await updateDetailQuantity(detail.id, Number(editQuantity));
       setEditingId(null);
       setMessage({ type: 'success', text: 'La cantidad y el total fueron actualizados.' });
       await loadDetails();
@@ -234,7 +254,7 @@ export default function PurchaseDetailsScreen() {
     try {
       setProcessingId(-1);
       setMessage(null);
-      await addPurchaseDetail(db, purchaseId, selectedProductId, Number(newQuantity));
+      await addPurchaseDetail(purchaseId, selectedProductId, Number(newQuantity));
       setShowAddForm(false);
       setSelectedProductId(null);
       setNewQuantity('1');
@@ -259,7 +279,7 @@ export default function PurchaseDetailsScreen() {
     try {
       setProcessingId(detail.id);
       setMessage(null);
-      await deletePurchaseDetail(db, detail.id);
+      await deletePurchaseDetail(detail.id);
       setDeleteId(null);
       setMessage({
         type: 'success',

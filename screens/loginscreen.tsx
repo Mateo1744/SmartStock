@@ -45,7 +45,7 @@ export default function LoginScreen() {
     }
 
     try {
-      // Desactiva el formulario mientras SQLite verifica la cuenta.
+      // Desactiva el formulario mientras Supabase verifica la cuenta.
       setIsLoading(true);
       const result = await signIn(email, password);
 

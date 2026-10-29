@@ -1,47 +1,31 @@
 /**
  * RESUMEN DEL ARCHIVO
- * Este es el contenedor principal de EntreMóvil. Abre la base de datos SQLite,
- * comparte la sesión del usuario y registra todas las pantallas de navegación.
+ * Este es el contenedor principal de SmartStock. Comparte la sesión del usuario
+ * y registra todas las pantallas de navegación.
  */
 
-// Expo Router permite navegar y crear la pila de pantallas de la aplicación.
-import { router, Stack } from 'expo-router';
-// SQLiteProvider abre una sola conexión y la comparte con toda la aplicación.
-import { SQLiteProvider } from 'expo-sqlite';
+// Expo Router crea la pila de pantallas de la aplicación.
+import { Stack } from 'expo-router';
 // StatusBar controla el aspecto de la barra superior del dispositivo.
 import { StatusBar } from 'expo-status-bar';
-// Componentes básicos usados para construir el botón del encabezado.
-import { Pressable, Text } from 'react-native';
-
 // AuthProvider guarda el usuario autenticado y ofrece las funciones de sesión.
 import { AuthProvider } from '@/context/auth-context';
-// Esta función crea las tablas y el administrador inicial al abrir la base de datos.
-import { initializeDatabase } from '@/database/database';
-
-// Botón reutilizable que lleva al usuario a la pantalla principal.
-function HomeHeaderButton() {
-  return (
-    <Pressable onPress={() => router.replace('/home')} style={{ paddingHorizontal: 8 }}>
-      <Text style={{ color: '#176B87', fontSize: 15, fontWeight: '800' }}>Inicio</Text>
-    </Pressable>
-  );
-}
+import { AppMenuButton } from '@/components/app-menu';
 
 export default function RootLayout() {
-  // Configuración que agrega el botón Inicio a las pantallas internas.
-  const homeMenu = { headerRight: () => <HomeHeaderButton /> };
+  // Configuración que agrega navegación global por rol a las pantallas internas.
+  const homeMenu = { headerRight: () => <AppMenuButton /> };
 
   return (
-    // Abre o crea el archivo local entremovil5.db.
-    <SQLiteProvider databaseName="entremovil5.db" onInit={initializeDatabase}>
-      {/* Hace que la sesión esté disponible para todas las pantallas. */}
-      <AuthProvider>
+    <AuthProvider>
         {/* Usa iconos oscuros en la barra de estado. */}
         <StatusBar style="dark" />
         {/* Define el diseño común del encabezado y el fondo. */}
         <Stack
           screenOptions={{
             headerShadowVisible: false,
+            headerTransparent: false,
+            headerStyle: { backgroundColor: '#F4F7FA' },
             headerTitleAlign: 'center',
             headerTintColor: '#14324A',
             contentStyle: { backgroundColor: '#F4F7FA' },
@@ -75,7 +59,6 @@ export default function RootLayout() {
             options={{ title: 'Estadísticas', ...homeMenu }}
           />
         </Stack>
-      </AuthProvider>
-    </SQLiteProvider>
+    </AuthProvider>
   );
 }

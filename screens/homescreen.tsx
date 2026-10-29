@@ -8,21 +8,35 @@
 import { useEffect, useState } from 'react';
 // Permite abrir los diferentes módulos de la aplicación.
 import { router, type Href } from 'expo-router';
-// Conexión compartida para verificar el perfil del cliente.
-import { useSQLiteContext } from 'expo-sqlite';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Proporciona usuario, carga y cierre de sesión.
 import { useAuth } from '@/context/auth-context';
+import { supabase } from '@/lib/supabase';
 
 // El administrador inicial no tiene nombre guardado en Login, por eso se muestra aquí.
 const ADMIN_DISPLAY_NAME = 'David Naranjo';
 
+const ADMIN_NAV_ITEMS: { code: string; label: string; href: Href }[] = [
+  { code: 'CL', label: 'Clientes', href: '/clientes' },
+  { code: 'PR', label: 'Productos', href: '/productos' },
+  { code: 'CO', label: 'Compras', href: '/encabezados' },
+  { code: 'ES', label: 'Estadísticas', href: '/estadisticas' },
+];
+
 export default function HomeScreen() {
   // Dependencias principales de la pantalla.
-  const db = useSQLiteContext();
   const { user, loading, signOut } = useAuth();
+  const { width, height } = useWindowDimensions();
   // Estados usados para mostrar indicadores de carga.
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
@@ -46,10 +60,13 @@ export default function HomeScreen() {
 
       // Un cliente debe tener datos personales antes de usar los módulos.
       if (user.rol === 'cliente') {
-        const profile = await db.getFirstAsync<{ id: number; nombre: string; apellido: string }>(
-          'SELECT id, nombre, apellido FROM Cliente WHERE id_login = ?',
-          user.id
-        );
+        const { data: profile, error: profileError } = await supabase
+          .from('clientes')
+          .select('id, nombre, apellido')
+          .eq('id_usuario', user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
 
         // Si no existe Cliente, abre el formulario obligatorio.
         if (!profile) {
@@ -77,7 +94,7 @@ export default function HomeScreen() {
     return () => {
       isActive = false;
     };
-  }, [db, loading, user]);
+  }, [loading, user]);
 
   // Elimina la sesión local y vuelve al login.
   async function handleSignOut() {
@@ -101,65 +118,152 @@ export default function HomeScreen() {
 
   // Esta variable simplifica las condiciones visuales por rol.
   const isAdmin = user.rol === 'admin';
+  const showAdminSidebar = width >= 1040;
+  const adminCardColumns: 1 | 2 | 4 = width >= 1380 ? 4 : width >= 700 ? 2 : 1;
+  const isCompactAdmin = width < 560;
 
   // Cada rol recibe una estructura propia, no solo una lista diferente de botones.
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.shell}>
-          {/* Barra común que identifica la aplicación y permite cerrar la sesión. */}
-          <View style={styles.topBar}>
-            <View style={styles.brandBlock}>
-              <View style={[styles.brandMark, isAdmin ? styles.adminBrandMark : styles.clientBrandMark]}>
-                <Text style={styles.brandInitials}>SS</Text>
-              </View>
-              <View>
-                <Text style={styles.brandName}>SmartStock</Text>
-                <Text style={styles.roleContext}>
-                  {isAdmin ? 'Panel administrativo' : 'Área de cliente'}
-                </Text>
-              </View>
+    <SafeAreaView style={[styles.safeArea, isAdmin && styles.adminSafeArea]}>
+      <ScrollView
+        contentContainerStyle={
+          isAdmin
+            ? [styles.adminPage, isCompactAdmin && styles.adminPageCompact]
+            : styles.container
+        }>
+        {isAdmin ? (
+          <AdminDashboard
+            displayName={displayName}
+            isSigningOut={isSigningOut}
+            onSignOut={handleSignOut}
+            showSidebar={showAdminSidebar}
+            cardColumns={adminCardColumns}
+            isCompact={isCompactAdmin}
+            viewportHeight={height}
+          />
+        ) : (
+          <View style={styles.shell}>
+            <View style={styles.topBar}>
+              <BrandBlock role="Área de cliente" />
+              <LogoutButton isSigningOut={isSigningOut} onSignOut={handleSignOut} />
             </View>
-
-            <Pressable
-              style={({ pressed }) => [styles.logoutButton, pressed && styles.buttonPressed]}
-              onPress={handleSignOut}
-              disabled={isSigningOut}>
-              {isSigningOut ? (
-                <ActivityIndicator color="#176B87" />
-              ) : (
-                <Text style={styles.logoutText}>Salir</Text>
-              )}
-            </Pressable>
-          </View>
-
-          {isAdmin ? (
-            <AdminDashboard displayName={displayName} />
-          ) : (
             <ClientDashboard displayName={displayName} />
-          )}
-        </View>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-// Inicio administrativo: prioriza control, gestión y análisis del negocio.
-function AdminDashboard({ displayName }: { displayName: string }) {
+function BrandBlock({ role, inverted = false }: { role: string; inverted?: boolean }) {
   return (
-    <>
-      <View style={styles.adminHero}>
+    <View style={styles.brandBlock}>
+      <View style={[styles.brandMark, inverted ? styles.brandMarkInverted : styles.clientBrandMark]}>
+        <Text style={styles.brandInitials}>SS</Text>
+      </View>
+      <View>
+        <Text style={[styles.brandName, inverted && styles.brandNameInverted]}>SmartStock</Text>
+        <Text style={[styles.roleContext, inverted && styles.roleContextInverted]}>{role}</Text>
+      </View>
+    </View>
+  );
+}
+
+function LogoutButton({
+  isSigningOut,
+  onSignOut,
+}: {
+  isSigningOut: boolean;
+  onSignOut: () => void | Promise<void>;
+}) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.logoutButton, pressed && styles.buttonPressed]}
+      onPress={onSignOut}
+      disabled={isSigningOut}>
+      {isSigningOut ? (
+        <ActivityIndicator color="#126B52" />
+      ) : (
+        <Text style={styles.logoutText}>Salir</Text>
+      )}
+    </Pressable>
+  );
+}
+
+// Inicio administrativo: prioriza control, gestión y análisis del negocio.
+function AdminDashboard({
+  displayName,
+  isSigningOut,
+  onSignOut,
+  showSidebar,
+  cardColumns,
+  isCompact,
+  viewportHeight,
+}: {
+  displayName: string;
+  isSigningOut: boolean;
+  onSignOut: () => void | Promise<void>;
+  showSidebar: boolean;
+  cardColumns: 1 | 2 | 4;
+  isCompact: boolean;
+  viewportHeight: number;
+}) {
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join('')
+    .toUpperCase();
+
+  return (
+    <View
+      style={[
+        styles.adminWorkspace,
+        showSidebar && styles.adminWorkspaceDesktop,
+        showSidebar && { minHeight: Math.max(viewportHeight - 44, 720) },
+      ]}>
+      {showSidebar ? <AdminSidebar /> : null}
+
+      <View style={styles.adminMain}>
+        <View style={[styles.adminTopBar, !showSidebar && styles.adminTopBarMobile]}>
+          {showSidebar ? (
+            <View>
+              <Text style={styles.adminTopKicker}>PANEL ADMINISTRATIVO</Text>
+              <Text style={styles.adminTopTitle}>Resumen general</Text>
+            </View>
+          ) : (
+            <BrandBlock role="Panel administrativo" />
+          )}
+
+          <View style={[styles.adminTopActions, isCompact && styles.adminTopActionsCompact]}>
+            <View style={styles.adminSessionSummary}>
+              <View style={styles.adminAvatar}>
+                <Text style={styles.adminAvatarText}>{initials || 'AD'}</Text>
+              </View>
+              <View style={styles.adminSessionText}>
+                <Text style={styles.adminSessionName} numberOfLines={1}>
+                  {displayName}
+                </Text>
+                <View style={styles.adminSessionStatusRow}>
+                  <View style={styles.adminSessionStatusDot} />
+                  <Text style={styles.adminSessionStatus}>Sesión activa</Text>
+                </View>
+              </View>
+            </View>
+            <LogoutButton isSigningOut={isSigningOut} onSignOut={onSignOut} />
+          </View>
+        </View>
+
+        {!showSidebar ? <AdminQuickNavigation /> : null}
+
+        <View style={[styles.adminHero, isCompact && styles.adminHeroCompact]}>
         <View style={styles.heroTextBlock}>
           <Text style={styles.adminEyebrow}>ACCESO ADMINISTRATIVO</Text>
           <Text style={styles.adminHeroTitle}>Centro de control</Text>
           <Text style={styles.adminHeroDescription}>
             Gestiona usuarios, inventario, compras y resultados desde un solo lugar.
           </Text>
-        </View>
-        <View style={styles.adminSessionCard}>
-          <Text style={styles.sessionLabel}>SESIÓN ACTIVA</Text>
-          <Text style={styles.sessionName} numberOfLines={1}>{displayName}</Text>
-          <Text style={styles.sessionAccess}>Permisos completos</Text>
         </View>
       </View>
 
@@ -190,6 +294,7 @@ function AdminDashboard({ displayName }: { displayName: string }) {
           href="/clientes"
           accentColor="#2F80ED"
           badgeColor="#EAF3FF"
+          columns={cardColumns}
         />
         <DashboardCard
           code="PR"
@@ -198,6 +303,7 @@ function AdminDashboard({ displayName }: { displayName: string }) {
           href="/productos"
           accentColor="#16835A"
           badgeColor="#E7F7EF"
+          columns={cardColumns}
         />
         <DashboardCard
           code="CO"
@@ -206,6 +312,7 @@ function AdminDashboard({ displayName }: { displayName: string }) {
           href="/encabezados"
           accentColor="#7657C8"
           badgeColor="#F0ECFC"
+          columns={cardColumns}
         />
         <DashboardCard
           code="ES"
@@ -214,6 +321,7 @@ function AdminDashboard({ displayName }: { displayName: string }) {
           href="/estadisticas"
           accentColor="#D97706"
           badgeColor="#FFF3DF"
+          columns={cardColumns}
         />
       </View>
 
@@ -226,7 +334,87 @@ function AdminDashboard({ displayName }: { displayName: string }) {
         </View>
         <Text style={styles.adminAboutArrow}>›</Text>
       </Pressable>
-    </>
+
+      <Text style={styles.adminCredit}>Elaborado por David Naranjo</Text>
+      </View>
+    </View>
+  );
+}
+
+function AdminSidebar() {
+  return (
+    <View style={styles.adminSidebar}>
+      <BrandBlock role="Panel administrativo" inverted />
+
+      <View style={styles.adminSidebarNavigation}>
+        <Text style={styles.adminSidebarLabel}>MENÚ PRINCIPAL</Text>
+        <AdminNavItem code="CC" label="Centro de control" href="/home" active />
+        {ADMIN_NAV_ITEMS.map((item) => (
+          <AdminNavItem key={item.href.toString()} {...item} />
+        ))}
+      </View>
+
+      <Pressable
+        style={({ pressed }) => [styles.adminSidebarAbout, pressed && styles.sidebarPressed]}
+        onPress={() => router.push('/sobre-nosotros')}>
+        <View style={styles.adminSidebarAboutIcon}>
+          <Text style={styles.adminSidebarAboutIconText}>i</Text>
+        </View>
+        <View style={styles.adminSidebarAboutText}>
+          <Text style={styles.adminSidebarAboutTitle}>Sobre SmartStock</Text>
+          <Text style={styles.adminSidebarAboutDescription}>Información del sistema</Text>
+        </View>
+      </Pressable>
+    </View>
+  );
+}
+
+function AdminNavItem({
+  code,
+  label,
+  href,
+  active = false,
+}: {
+  code: string;
+  label: string;
+  href: Href;
+  active?: boolean;
+}) {
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.adminNavItem,
+        active && styles.adminNavItemActive,
+        pressed && styles.sidebarPressed,
+      ]}
+      onPress={() => (active ? router.replace(href) : router.push(href))}>
+      <View style={[styles.adminNavCode, active && styles.adminNavCodeActive]}>
+        <Text style={[styles.adminNavCodeText, active && styles.adminNavCodeTextActive]}>
+          {code}
+        </Text>
+      </View>
+      <Text style={[styles.adminNavLabel, active && styles.adminNavLabelActive]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function AdminQuickNavigation() {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.adminQuickNavigationScroller}
+      contentContainerStyle={styles.adminQuickNavigation}>
+      {ADMIN_NAV_ITEMS.map((item) => (
+        <Pressable
+          key={item.href.toString()}
+          style={({ pressed }) => [styles.adminQuickItem, pressed && styles.buttonPressed]}
+          onPress={() => router.push(item.href)}>
+          <Text style={styles.adminQuickCode}>{item.code}</Text>
+          <Text style={styles.adminQuickLabel}>{item.label}</Text>
+        </Pressable>
+      ))}
+    </ScrollView>
   );
 }
 
@@ -297,6 +485,7 @@ function DashboardCard({
   href,
   accentColor,
   badgeColor,
+  columns,
 }: {
   code: string;
   title: string;
@@ -304,12 +493,17 @@ function DashboardCard({
   href: Href;
   accentColor: string;
   badgeColor: string;
+  columns: 1 | 2 | 4;
 }) {
   return (
     <Pressable
       style={({ pressed }) => [
         styles.dashboardCard,
-        { borderTopColor: accentColor },
+        columns === 4
+          ? styles.dashboardCardFourColumns
+          : columns === 2
+            ? styles.dashboardCardTwoColumns
+            : styles.dashboardCardOneColumn,
         pressed && styles.buttonPressed,
       ]}
       onPress={() => router.push(href)}>
@@ -318,7 +512,12 @@ function DashboardCard({
       </View>
       <Text style={styles.dashboardCardTitle}>{title}</Text>
       <Text style={styles.dashboardCardDescription}>{description}</Text>
-      <Text style={[styles.dashboardCardLink, { color: accentColor }]}>Abrir módulo  →</Text>
+      <View style={styles.dashboardCardFooter}>
+        <Text style={[styles.dashboardCardLink, { color: accentColor }]}>Abrir módulo</Text>
+        <View style={[styles.dashboardArrowButton, { backgroundColor: badgeColor }]}>
+          <Text style={[styles.dashboardArrow, { color: accentColor }]}>›</Text>
+        </View>
+      </View>
     </Pressable>
   );
 }
@@ -354,8 +553,18 @@ function ClientActionCard({
 // Estilos del menú principal y de las dos experiencias según el rol.
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F3F6F8' },
+  adminSafeArea: { backgroundColor: '#F4F7F5' },
   container: { flexGrow: 1, paddingHorizontal: 20, paddingVertical: 22 },
   shell: { width: '100%', maxWidth: 980, alignSelf: 'center' },
+  adminPage: {
+    flexGrow: 1,
+    width: '100%',
+    maxWidth: 1540,
+    alignSelf: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 22,
+  },
+  adminPageCompact: { paddingHorizontal: 14, paddingVertical: 14 },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
@@ -378,57 +587,158 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 13,
   },
-  adminBrandMark: { backgroundColor: '#14324A' },
   clientBrandMark: { backgroundColor: '#13795B' },
+  brandMarkInverted: { backgroundColor: '#16866A' },
   brandInitials: { color: '#FFFFFF', fontSize: 14, fontWeight: '900', letterSpacing: 0.6 },
   brandName: { color: '#14324A', fontSize: 18, fontWeight: '900' },
+  brandNameInverted: { color: '#FFFFFF' },
   roleContext: { color: '#6B7F8E', fontSize: 12, marginTop: 2 },
+  roleContextInverted: { color: '#B9D8CF' },
   logoutButton: {
-    minHeight: 42,
+    minHeight: 46,
+    minWidth: 72,
+    alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#AAC1CE',
-    borderRadius: 10,
-    paddingHorizontal: 14,
+    borderColor: '#91BEAF',
+    borderRadius: 12,
+    paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
   },
-  logoutText: { color: '#176B87', fontWeight: '900' },
-  adminHero: {
+  logoutText: { color: '#126B52', fontWeight: '900' },
+  adminWorkspace: { width: '100%' },
+  adminWorkspaceDesktop: { flexDirection: 'row', alignItems: 'stretch', gap: 24 },
+  adminSidebar: {
+    width: 248,
+    borderRadius: 28,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    backgroundColor: '#0B4338',
+  },
+  adminSidebarNavigation: { flex: 1, marginTop: 38, gap: 8 },
+  adminSidebarLabel: {
+    color: '#88B8AA',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    marginBottom: 6,
+    paddingHorizontal: 10,
+  },
+  adminNavItem: {
+    minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+  },
+  adminNavItemActive: { backgroundColor: '#19594D' },
+  adminNavCode: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    backgroundColor: '#174F44',
+  },
+  adminNavCodeActive: { backgroundColor: '#D7F2E7' },
+  adminNavCodeText: { color: '#A5CFC3', fontSize: 10, fontWeight: '900' },
+  adminNavCodeTextActive: { color: '#0B6A51' },
+  adminNavLabel: { color: '#CBE1DB', fontSize: 14, fontWeight: '700' },
+  adminNavLabelActive: { color: '#FFFFFF', fontWeight: '900' },
+  sidebarPressed: { opacity: 0.72 },
+  adminSidebarAbout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    borderWidth: 1,
+    borderColor: '#2A655A',
+    borderRadius: 16,
+    padding: 13,
+    marginTop: 26,
+    backgroundColor: '#124C41',
+  },
+  adminSidebarAboutIcon: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    backgroundColor: '#D7F2E7',
+  },
+  adminSidebarAboutIconText: { color: '#0B6A51', fontSize: 17, fontWeight: '900' },
+  adminSidebarAboutText: { flex: 1 },
+  adminSidebarAboutTitle: { color: '#FFFFFF', fontSize: 13, fontWeight: '900' },
+  adminSidebarAboutDescription: { color: '#A9CEC4', fontSize: 10, marginTop: 3 },
+  adminMain: { flex: 1, minWidth: 0 },
+  adminTopBar: {
+    minHeight: 70,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 24,
-    borderRadius: 24,
-    padding: 28,
-    backgroundColor: '#14324A',
-  },
-  heroTextBlock: { flex: 2, minWidth: 250 },
-  adminEyebrow: { color: '#8ED7E8', fontSize: 11, fontWeight: '900', letterSpacing: 1.3 },
-  adminHeroTitle: { color: '#FFFFFF', fontSize: 31, fontWeight: '900', marginTop: 9 },
-  adminHeroDescription: { color: '#D9E7EE', fontSize: 15, lineHeight: 23, marginTop: 9 },
-  adminSessionCard: {
-    flex: 1,
-    minWidth: 210,
+    justifyContent: 'space-between',
+    gap: 16,
     borderWidth: 1,
-    borderColor: '#36566D',
-    borderRadius: 17,
-    padding: 17,
-    backgroundColor: '#1D4059',
+    borderColor: '#DFE8E4',
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
   },
-  sessionLabel: { color: '#8ED7E8', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
-  sessionName: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', marginTop: 9 },
-  sessionAccess: { color: '#B8CFDA', fontSize: 12, marginTop: 5 },
+  adminTopBarMobile: { marginBottom: 12 },
+  adminTopKicker: { color: '#71847D', fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
+  adminTopTitle: { color: '#173B32', fontSize: 17, fontWeight: '900', marginTop: 4 },
+  adminTopActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  adminTopActionsCompact: { width: '100%', justifyContent: 'space-between' },
+  adminSessionSummary: { minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  adminAvatar: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 13,
+    backgroundColor: '#E2F3ED',
+  },
+  adminAvatarText: { color: '#126B52', fontSize: 12, fontWeight: '900' },
+  adminSessionText: { minWidth: 0 },
+  adminSessionName: { maxWidth: 170, color: '#173B32', fontSize: 14, fontWeight: '900' },
+  adminSessionStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 3 },
+  adminSessionStatusDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#29A777' },
+  adminSessionStatus: { color: '#6A7E77', fontSize: 11 },
+  adminQuickNavigationScroller: { marginHorizontal: -2, marginBottom: 6 },
+  adminQuickNavigation: { gap: 8, paddingHorizontal: 2, paddingVertical: 4 },
+  adminQuickItem: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#D9E6E1',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  adminQuickCode: { color: '#16835A', fontSize: 10, fontWeight: '900' },
+  adminQuickLabel: { color: '#35574D', fontSize: 12, fontWeight: '800' },
+  adminHero: {
+    paddingHorizontal: 4,
+    paddingTop: 38,
+    paddingBottom: 24,
+  },
+  adminHeroCompact: { paddingTop: 24, paddingBottom: 18 },
+  heroTextBlock: { maxWidth: 760 },
+  adminEyebrow: { color: '#4C8272', fontSize: 10, fontWeight: '900', letterSpacing: 1.4 },
+  adminHeroTitle: { color: '#102F27', fontSize: 36, fontWeight: '900', marginTop: 9 },
+  adminHeroDescription: { color: '#657871', fontSize: 15, lineHeight: 23, marginTop: 9 },
   priorityCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 15,
     borderWidth: 1,
     borderColor: '#F5CF91',
-    borderRadius: 17,
+    borderRadius: 18,
     padding: 18,
-    marginTop: 18,
-    backgroundColor: '#FFF8EA',
+    backgroundColor: '#FFF9EE',
   },
   priorityBadge: {
     width: 43,
@@ -445,21 +755,28 @@ const styles = StyleSheet.create({
   priorityDescription: { color: '#806238', fontSize: 13, marginTop: 3 },
   priorityArrow: { color: '#C8750B', fontSize: 32, lineHeight: 34 },
   sectionHeading: { marginTop: 30, marginBottom: 15 },
-  adminSectionTitle: { color: '#14324A', fontSize: 22, fontWeight: '900' },
+  adminSectionTitle: { color: '#173B32', fontSize: 22, fontWeight: '900' },
   clientSectionTitle: { color: '#124E3E', fontSize: 22, fontWeight: '900' },
-  sectionSubtitle: { color: '#6A7E8D', fontSize: 14, marginTop: 5 },
+  sectionSubtitle: { color: '#6A7E77', fontSize: 14, marginTop: 5 },
   dashboardGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   dashboardCard: {
     flexGrow: 1,
-    flexBasis: 280,
-    minHeight: 190,
+    minWidth: 0,
+    minHeight: 210,
     borderWidth: 1,
-    borderTopWidth: 4,
-    borderColor: '#DFE7EC',
-    borderRadius: 17,
+    borderColor: '#DCE7E2',
+    borderRadius: 18,
     padding: 20,
     backgroundColor: '#FFFFFF',
+    shadowColor: '#183D33',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 2,
   },
+  dashboardCardFourColumns: { flexBasis: '22%' },
+  dashboardCardTwoColumns: { flexBasis: '46%' },
+  dashboardCardOneColumn: { flexBasis: '100%', minHeight: 184 },
   dashboardBadge: {
     width: 42,
     height: 42,
@@ -468,21 +785,47 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   dashboardBadgeText: { fontSize: 12, fontWeight: '900', letterSpacing: 0.5 },
-  dashboardCardTitle: { color: '#14324A', fontSize: 18, fontWeight: '900', marginTop: 16 },
-  dashboardCardDescription: { flex: 1, color: '#607584', fontSize: 14, lineHeight: 20, marginTop: 7 },
-  dashboardCardLink: { fontSize: 13, fontWeight: '900', marginTop: 17 },
+  dashboardCardTitle: { color: '#173B32', fontSize: 18, fontWeight: '900', marginTop: 16 },
+  dashboardCardDescription: { flex: 1, color: '#64766F', fontSize: 14, lineHeight: 20, marginTop: 7 },
+  dashboardCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 17,
+  },
+  dashboardCardLink: { fontSize: 13, fontWeight: '900' },
+  dashboardArrowButton: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 17,
+  },
+  dashboardArrow: { fontSize: 24, lineHeight: 25, fontWeight: '700' },
   adminAboutCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#D8E5DF',
+    borderRadius: 16,
     padding: 18,
     marginTop: 18,
-    backgroundColor: '#E8EEF2',
+    backgroundColor: '#EAF4F0',
   },
-  adminAboutTitle: { color: '#294A60', fontSize: 15, fontWeight: '900' },
-  adminAboutDescription: { color: '#667D8B', fontSize: 13, marginTop: 4 },
-  adminAboutArrow: { color: '#496B80', fontSize: 30 },
+  adminAboutTitle: { color: '#204B3F', fontSize: 15, fontWeight: '900' },
+  adminAboutDescription: { color: '#657B73', fontSize: 13, marginTop: 4 },
+  adminAboutArrow: { color: '#32725F', fontSize: 30 },
+  adminCredit: {
+    alignSelf: 'flex-end',
+    color: '#71847D',
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 18,
+    paddingRight: 2,
+    textAlign: 'right',
+  },
   clientHero: {
     overflow: 'hidden',
     borderWidth: 1,

@@ -1,15 +1,13 @@
 /**
  * RESUMEN DEL ARCHIVO
  * Solicita nombre y apellido la primera vez que ingresa un cliente aprobado.
- * Con esos datos crea el registro Cliente asociado a su cuenta Login.
+ * Con esos datos crea el registro clientes asociado a Supabase Auth.
  */
 
 // Hooks para ejecutar la comprobación inicial y manejar el formulario.
 import { useEffect, useState } from 'react';
 // Navegación entre perfil e inicio.
 import { router } from 'expo-router';
-// Acceso a la base de datos compartida.
-import { useSQLiteContext } from 'expo-sqlite';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -25,10 +23,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Consulta el usuario que tiene la sesión activa.
 import { useAuth } from '@/context/auth-context';
+import { supabase } from '@/lib/supabase';
 
 export default function ClientProfileScreen() {
-  // Conexión SQLite y datos de autenticación.
-  const db = useSQLiteContext();
   const { user, loading: authLoading } = useAuth();
   // Estados del formulario y sus indicadores.
   const [name, setName] = useState('');
@@ -54,11 +51,13 @@ export default function ClientProfileScreen() {
         return;
       }
 
-      // Busca un perfil vinculado al id de Login.
-      const existingProfile = await db.getFirstAsync<{ id: number }>(
-        'SELECT id FROM Cliente WHERE id_login = ?',
-        user.id
-      );
+      const { data: existingProfile, error: profileError } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('id_usuario', user.id)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
 
       if (!isActive) {
         return;
@@ -84,7 +83,7 @@ export default function ClientProfileScreen() {
     return () => {
       isActive = false;
     };
-  }, [authLoading, db, user]);
+  }, [authLoading, user]);
 
   // Valida y guarda los datos personales.
   async function handleSave() {
@@ -107,22 +106,22 @@ export default function ClientProfileScreen() {
     try {
       setSaving(true);
 
-      // Repite la consulta para evitar duplicados si el botón se presiona dos veces.
-      const existingProfile = await db.getFirstAsync<{ id: number }>(
-        'SELECT id FROM Cliente WHERE id_login = ?',
-        user.id
-      );
+      const { data: existingProfile, error: profileError } = await supabase
+        .from('clientes')
+        .select('id')
+        .eq('id_usuario', user.id)
+        .maybeSingle();
 
-      // Inserta el perfil y utiliza el mismo correo de la cuenta.
+      if (profileError) throw profileError;
+
       if (!existingProfile) {
-        await db.runAsync(
-          `INSERT INTO Cliente (id_login, nombre, apellido, correo)
-           VALUES (?, ?, ?, ?)`,
-          user.id,
-          cleanName,
-          cleanLastName,
-          user.correo
-        );
+        const { error: insertError } = await supabase.from('clientes').insert({
+          id_usuario: user.id,
+          nombre: cleanName,
+          apellido: cleanLastName,
+        });
+
+        if (insertError) throw insertError;
       }
 
       // Continúa al menú principal después de guardar.

@@ -1,15 +1,13 @@
 /**
  * RESUMEN DEL ARCHIVO
  * Permite al cliente seleccionar productos y cantidades, calcula el total en
- * tiempo real y registra toda la compra mediante una transacción SQLite.
+ * tiempo real y registra toda la compra mediante una transacción en Supabase.
  */
 
 // Hooks para cargar datos, guardar cantidades y calcular valores derivados.
 import { useEffect, useMemo, useState } from 'react';
 // Navegación hacia login, perfil, encabezados o detalles.
 import { router } from 'expo-router';
-// Acceso a la base de datos compartida.
-import { useSQLiteContext } from 'expo-sqlite';
 import {
   ActivityIndicator,
   Pressable,
@@ -24,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // Sesión actual y función transaccional de compras.
 import { useAuth } from '@/context/auth-context';
 import { createPurchase } from '@/database/purchases';
+import { supabase } from '@/lib/supabase';
 
 // Datos mostrados para cada producto disponible.
 type Product = {
@@ -45,7 +44,6 @@ function formatMoney(value: number) {
 
 export default function NewPurchaseScreen() {
   // Dependencias y estados de la pantalla.
-  const db = useSQLiteContext();
   const { user, loading: authLoading } = useAuth();
   const [clientId, setClientId] = useState<number | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -77,10 +75,12 @@ export default function NewPurchaseScreen() {
 
       try {
         // Obtiene el id de Cliente que necesita el encabezado.
-        const client = await db.getFirstAsync<{ id: number }>(
-          'SELECT id FROM Cliente WHERE id_login = ?',
-          user.id
-        );
+        const { data: client, error: clientError } = await supabase
+          .from('clientes')
+          .select('id')
+          .eq('id_usuario', user.id)
+          .maybeSingle();
+        if (clientError) throw clientError;
 
         if (!client) {
           router.replace('/perfil');
@@ -88,16 +88,21 @@ export default function NewPurchaseScreen() {
         }
 
         // Solo muestra productos que se pueden comprar actualmente.
-        const rows = await db.getAllAsync<Product>(`
-          SELECT id, nombre, descripcion, valor_unitario, stock
-          FROM Producto
-          WHERE stock > 0
-          ORDER BY nombre COLLATE NOCASE
-        `);
+        const { data: rows, error: productsError } = await supabase
+          .from('productos')
+          .select('id, nombre, descripcion, valor_unitario, stock')
+          .gt('stock', 0)
+          .order('nombre', { ascending: true });
+        if (productsError) throw productsError;
 
         if (isActive) {
           setClientId(client.id);
-          setProducts(rows);
+          setProducts(
+            rows.map((product) => ({
+              ...product,
+              valor_unitario: Number(product.valor_unitario),
+            }))
+          );
         }
       } catch {
         if (isActive) {
@@ -114,7 +119,7 @@ export default function NewPurchaseScreen() {
     return () => {
       isActive = false;
     };
-  }, [authLoading, db, user]);
+  }, [authLoading, user]);
 
   // Convierte cantidades escritas en una lista de productos seleccionados.
   const selectedItems = useMemo(
@@ -167,7 +172,6 @@ export default function NewPurchaseScreen() {
       setSaving(true);
       // La función central vuelve a validar stock dentro de una transacción.
       const purchaseId = await createPurchase(
-        db,
         clientId,
         selectedItems.map((item) => ({
           productId: item.product.id,

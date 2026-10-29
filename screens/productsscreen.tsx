@@ -8,10 +8,10 @@
 import { useCallback, useEffect, useState } from 'react';
 // Navegación y enfoque de la ruta.
 import { router, useFocusEffect } from 'expo-router';
-// Conexión SQLite compartida.
-import { useSQLiteContext } from 'expo-sqlite';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -23,8 +23,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Datos de sesión para aplicar permisos por rol.
 import { useAuth } from '@/context/auth-context';
+import { supabase } from '@/lib/supabase';
 
-// Estructura completa de un producto leído de SQLite.
+// Estructura completa de un producto leído de Supabase.
 type Product = {
   id: number;
   nombre: string;
@@ -64,7 +65,7 @@ function formatMoney(value: number) {
   }).format(value);
 }
 
-// Limpia y convierte los campos del formulario a tipos válidos para SQLite.
+// Limpia y convierte los campos del formulario a tipos válidos para PostgreSQL.
 function parseProductForm(form: ProductForm) {
   const nombre = form.nombre.trim();
   const descripcion = form.descripcion.trim();
@@ -87,8 +88,7 @@ function parseProductForm(form: ProductForm) {
 }
 
 export default function ProductsScreen() {
-  // Base de datos y sesión actual.
-  const db = useSQLiteContext();
+  // Sesión actual.
   const { user, loading: authLoading } = useAuth();
   // Lista, carga, formularios y confirmación de eliminación.
   const [products, setProducts] = useState<Product[]>([]);
@@ -109,26 +109,35 @@ export default function ProductsScreen() {
   const loadProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const rows = await db.getAllAsync<Product>(`
-        SELECT
-          p.id,
-          p.nombre,
-          p.descripcion,
-          p.valor_unitario,
-          p.stock,
-          COUNT(d.id) AS ventas
-        FROM Producto p
-        LEFT JOIN Detalles d ON d.id_producto = p.id
-        GROUP BY p.id, p.nombre, p.descripcion, p.valor_unitario, p.stock
-        ORDER BY p.nombre COLLATE NOCASE
-      `);
-      setProducts(rows);
+      const [productsResult, detailsResult] = await Promise.all([
+        supabase
+          .from('productos')
+          .select('id, nombre, descripcion, valor_unitario, stock')
+          .order('nombre', { ascending: true }),
+        supabase.from('detalles').select('id_producto'),
+      ]);
+
+      if (productsResult.error) throw productsResult.error;
+      if (detailsResult.error) throw detailsResult.error;
+
+      const saleCounts = new Map<number, number>();
+      detailsResult.data.forEach((detail) => {
+        saleCounts.set(detail.id_producto, (saleCounts.get(detail.id_producto) ?? 0) + 1);
+      });
+
+      setProducts(
+        productsResult.data.map((product) => ({
+          ...product,
+          valor_unitario: Number(product.valor_unitario),
+          ventas: saleCounts.get(product.id) ?? 0,
+        }))
+      );
     } catch {
       setMessage({ type: 'error', text: 'No fue posible cargar los productos.' });
     } finally {
       setLoading(false);
     }
-  }, [db]);
+  }, []);
 
   // Protege la pantalla cuando no hay sesión.
   useEffect(() => {
@@ -177,14 +186,13 @@ export default function ProductsScreen() {
     try {
       setCreating(true);
       setMessage(null);
-      await db.runAsync(
-        `INSERT INTO Producto (nombre, descripcion, valor_unitario, stock)
-         VALUES (?, ?, ?, ?)`,
-        parsed.nombre,
-        parsed.descripcion,
-        parsed.valor,
-        parsed.stock
-      );
+      const { error } = await supabase.from('productos').insert({
+        nombre: parsed.nombre,
+        descripcion: parsed.descripcion,
+        valor_unitario: parsed.valor,
+        stock: parsed.stock,
+      });
+      if (error) throw error;
 
       closeCreateForm();
       setMessage({ type: 'success', text: 'El producto fue creado correctamente.' });
@@ -230,16 +238,16 @@ export default function ProductsScreen() {
     try {
       setProcessingId(product.id);
       setMessage(null);
-      await db.runAsync(
-        `UPDATE Producto
-         SET nombre = ?, descripcion = ?, valor_unitario = ?, stock = ?
-         WHERE id = ?`,
-        parsed.nombre,
-        parsed.descripcion,
-        parsed.valor,
-        parsed.stock,
-        product.id
-      );
+      const { error } = await supabase
+        .from('productos')
+        .update({
+          nombre: parsed.nombre,
+          descripcion: parsed.descripcion,
+          valor_unitario: parsed.valor,
+          stock: parsed.stock,
+        })
+        .eq('id', product.id);
+      if (error) throw error;
 
       cancelEditing();
       setMessage({ type: 'success', text: 'El producto fue actualizado correctamente.' });
@@ -280,10 +288,13 @@ export default function ProductsScreen() {
       setMessage(null);
 
       // Revisa de nuevo por si se registró una compra recientemente.
-      const sale = await db.getFirstAsync<{ id: number }>(
-        'SELECT id FROM Detalles WHERE id_producto = ? LIMIT 1',
-        product.id
-      );
+      const { data: sale, error: saleError } = await supabase
+        .from('detalles')
+        .select('id')
+        .eq('id_producto', product.id)
+        .limit(1)
+        .maybeSingle();
+      if (saleError) throw saleError;
 
       if (sale) {
         setDeleteId(null);
@@ -295,7 +306,8 @@ export default function ProductsScreen() {
         return;
       }
 
-      await db.runAsync('DELETE FROM Producto WHERE id = ?', product.id);
+      const { error } = await supabase.from('productos').delete().eq('id', product.id);
+      if (error) throw error;
       setDeleteId(null);
       setMessage({ type: 'success', text: 'El producto fue eliminado.' });
       await loadProducts();
@@ -317,7 +329,15 @@ export default function ProductsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        contentInsetAdjustmentBehavior="automatic"
+        automaticallyAdjustKeyboardInsets
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        keyboardShouldPersistTaps="handled">
         <View style={styles.introCard}>
           <View style={styles.introTextContainer}>
             <Text style={styles.introTitle}>{isAdmin ? 'Administrar productos' : 'Productos'}</Text>
@@ -460,6 +480,7 @@ export default function ProductsScreen() {
           </View>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -553,6 +574,7 @@ function ProductFormCard({
 
 // Estilos del inventario y de sus formularios.
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   safeArea: { flex: 1, backgroundColor: '#F4F7FA' },
   container: {
     flexGrow: 1,
@@ -560,7 +582,8 @@ const styles = StyleSheet.create({
     maxWidth: 900,
     alignSelf: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 24,
+    paddingTop: 24,
+    paddingBottom: 56,
   },
   loadingContainer: {
     flex: 1,

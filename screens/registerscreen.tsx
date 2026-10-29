@@ -22,7 +22,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// register contiene la operación real de registro en SQLite.
+// register contiene la operación real de registro en Supabase Auth.
 import { useAuth } from '@/context/auth-context';
 
 // Expresión sencilla para comprobar la estructura básica de un correo.

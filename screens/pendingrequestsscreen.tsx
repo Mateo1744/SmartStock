@@ -8,8 +8,6 @@
 import { useCallback, useEffect, useState } from 'react';
 // Navegación y evento de enfoque de Expo Router.
 import { router, useFocusEffect } from 'expo-router';
-// Acceso a la base de datos.
-import { useSQLiteContext } from 'expo-sqlite';
 import {
   ActivityIndicator,
   Pressable,
@@ -22,10 +20,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Permite comprobar que la persona conectada sea administradora.
 import { useAuth } from '@/context/auth-context';
+import { supabase } from '@/lib/supabase';
 
 // Datos necesarios para representar una solicitud.
 type PendingRequest = {
-  id: number;
+  id: string;
   correo: string;
   fecha_creacion: string;
 };
@@ -40,7 +39,7 @@ type UserRole = 'admin' | 'cliente';
 
 // Presenta la fecha de creación en formato colombiano.
 function formatDate(value: string) {
-  const date = new Date(`${value.replace(' ', 'T')}Z`);
+  const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return value;
@@ -54,24 +53,26 @@ function formatDate(value: string) {
 
 export default function PendingRequestsScreen() {
   // Dependencias principales y estado visual.
-  const db = useSQLiteContext();
   const { user, loading: authLoading } = useAuth();
   const [requests, setRequests] = useState<PendingRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<number | null>(null);
-  const [selectedRoles, setSelectedRoles] = useState<Record<number, UserRole>>({});
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<Record<string, UserRole>>({});
   const [message, setMessage] = useState<Message | null>(null);
 
   // Consulta únicamente cuentas cliente que todavía estén pendientes.
   const loadRequests = useCallback(async () => {
     try {
       setLoading(true);
-      const rows = await db.getAllAsync<PendingRequest>(`
-        SELECT id, correo, fecha_creacion
-        FROM Login
-        WHERE rol = 'cliente' AND estado = 'pendiente'
-        ORDER BY fecha_creacion ASC, id ASC
-      `);
+      const { data: rows, error } = await supabase
+        .from('perfiles')
+        .select('id, correo, fecha_creacion')
+        .eq('rol', 'cliente')
+        .eq('estado', 'pendiente')
+        .order('fecha_creacion', { ascending: true })
+        .order('id', { ascending: true });
+
+      if (error) throw error;
       setRequests(rows);
       // Asigna Cliente como opción inicial sin borrar selecciones existentes.
       setSelectedRoles((current) => {
@@ -86,7 +87,7 @@ export default function PendingRequestsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [db]);
+  }, []);
 
   // Bloquea la pantalla para usuarios que no sean administradores.
   useEffect(() => {
@@ -113,17 +114,18 @@ export default function PendingRequestsScreen() {
       // Si no hubo selección explícita, el rol seguro por defecto es cliente.
       const selectedRole = selectedRoles[request.id] ?? 'cliente';
       const roleToSave = status === 'activo' ? selectedRole : 'cliente';
-      const result = await db.runAsync(
-        `UPDATE Login
-         SET estado = ?, rol = ?
-         WHERE id = ? AND rol = 'cliente' AND estado = 'pendiente'`,
-        status,
-        roleToSave,
-        request.id
-      );
+      const { data: updatedRows, error } = await supabase
+        .from('perfiles')
+        .update({ estado: status, rol: roleToSave })
+        .eq('id', request.id)
+        .eq('rol', 'cliente')
+        .eq('estado', 'pendiente')
+        .select('id');
+
+      if (error) throw error;
 
       // Cero cambios significa que la solicitud ya fue procesada.
-      if (result.changes === 0) {
+      if (updatedRows.length === 0) {
         setMessage({
           type: 'error',
           text: 'La solicitud ya había sido procesada. Se actualizará la lista.',

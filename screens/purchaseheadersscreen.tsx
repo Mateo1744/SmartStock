@@ -8,8 +8,6 @@
 import { useCallback, useEffect, useState } from 'react';
 // Navegación y evento de enfoque.
 import { router, useFocusEffect } from 'expo-router';
-// Conexión SQLite compartida.
-import { useSQLiteContext } from 'expo-sqlite';
 import {
   ActivityIndicator,
   Pressable,
@@ -23,6 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // Sesión actual y operación segura para eliminar compras.
 import { useAuth } from '@/context/auth-context';
 import { deletePurchase } from '@/database/purchases';
+import { supabase } from '@/lib/supabase';
 
 // Resultado de la consulta del encabezado unido con Cliente y Detalles.
 type PurchaseHeader = {
@@ -49,9 +48,9 @@ function formatMoney(value: number) {
   }).format(value);
 }
 
-// Presenta fecha y hora de SQLite en formato local.
+// Presenta fecha y hora de Supabase en formato local.
 function formatDate(value: string) {
-  const date = new Date(`${value.replace(' ', 'T')}Z`);
+  const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return value;
@@ -62,7 +61,6 @@ function formatDate(value: string) {
 
 export default function PurchaseHeadersScreen() {
   // Dependencias y estados de datos, carga y eliminación.
-  const db = useSQLiteContext();
   const { user, loading: authLoading } = useAuth();
   const [purchases, setPurchases] = useState<PurchaseHeader[]>([]);
   const [loading, setLoading] = useState(true);
@@ -81,35 +79,70 @@ export default function PurchaseHeadersScreen() {
 
     try {
       setLoading(true);
-      // La suma de cantidades permite mostrar las unidades de cada compra.
-      const baseSql = `
-        SELECT
-          e.id,
-          e.fecha,
-          e.total,
-          c.nombre,
-          c.apellido,
-          c.correo,
-          COALESCE(SUM(d.cantidad), 0) AS unidades
-        FROM Encabezado e
-        INNER JOIN Cliente c ON c.id = e.id_cliente
-        LEFT JOIN Detalles d ON d.id_encabezado = e.id
-        ${isAdmin ? '' : 'WHERE c.id_login = ?'}
-        GROUP BY e.id, e.fecha, e.total, c.nombre, c.apellido, c.correo
-        ORDER BY e.fecha DESC, e.id DESC
-      `;
+      // RLS entrega todas las compras al admin y únicamente las propias al cliente.
+      const { data: headers, error: headersError } = await supabase
+        .from('encabezados')
+        .select('id, id_cliente, fecha, total')
+        .order('fecha', { ascending: false })
+        .order('id', { ascending: false });
+      if (headersError) throw headersError;
 
-      // Solo se envía user.id cuando la cláusula WHERE está presente.
-      const rows = isAdmin
-        ? await db.getAllAsync<PurchaseHeader>(baseSql)
-        : await db.getAllAsync<PurchaseHeader>(baseSql, user.id);
-      setPurchases(rows);
+      const clientIds = [...new Set(headers.map((header) => header.id_cliente))];
+      const purchaseIds = headers.map((header) => header.id);
+      const [clientsResult, detailsResult] = await Promise.all([
+        clientIds.length
+          ? supabase
+              .from('clientes')
+              .select('id, id_usuario, nombre, apellido')
+              .in('id', clientIds)
+          : Promise.resolve({ data: [], error: null }),
+        purchaseIds.length
+          ? supabase
+              .from('detalles')
+              .select('id_encabezado, cantidad')
+              .in('id_encabezado', purchaseIds)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
+      if (clientsResult.error) throw clientsResult.error;
+      if (detailsResult.error) throw detailsResult.error;
+
+      const userIds = clientsResult.data.map((client) => client.id_usuario);
+      const profilesResult = userIds.length
+        ? await supabase.from('perfiles').select('id, correo').in('id', userIds)
+        : { data: [], error: null };
+      if (profilesResult.error) throw profilesResult.error;
+
+      const clients = new Map(clientsResult.data.map((client) => [client.id, client]));
+      const emails = new Map(profilesResult.data.map((profile) => [profile.id, profile.correo]));
+      const unitCounts = new Map<number, number>();
+      detailsResult.data.forEach((detail) => {
+        unitCounts.set(
+          detail.id_encabezado,
+          (unitCounts.get(detail.id_encabezado) ?? 0) + detail.cantidad
+        );
+      });
+
+      setPurchases(
+        headers.flatMap((header) => {
+          const client = clients.get(header.id_cliente);
+          if (!client) return [];
+          return [{
+            id: header.id,
+            fecha: header.fecha,
+            total: Number(header.total),
+            nombre: client.nombre,
+            apellido: client.apellido,
+            correo: emails.get(client.id_usuario) ?? 'Correo no disponible',
+            unidades: unitCounts.get(header.id) ?? 0,
+          }];
+        })
+      );
     } catch {
       setMessage({ type: 'error', text: 'No fue posible cargar las compras.' });
     } finally {
       setLoading(false);
     }
-  }, [db, isAdmin, user]);
+  }, [user]);
 
   // Protege la ruta si la sesión se perdió.
   useEffect(() => {
@@ -136,7 +169,7 @@ export default function PurchaseHeadersScreen() {
     try {
       setDeletingId(purchase.id);
       setMessage(null);
-      await deletePurchase(db, purchase.id);
+      await deletePurchase(purchase.id);
       setConfirmDeleteId(null);
       setMessage({
         type: 'success',
