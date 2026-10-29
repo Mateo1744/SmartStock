@@ -190,7 +190,7 @@ export default function PurchaseHeadersScreen() {
   if (authLoading || !user) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#176B87" />
+        <ActivityIndicator size="large" color="#13795B" />
       </View>
     );
   }
@@ -225,7 +225,7 @@ export default function PurchaseHeadersScreen() {
 
         {loading ? (
           <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color="#176B87" />
+            <ActivityIndicator size="large" color="#13795B" />
             <Text style={styles.loadingText}>Cargando compras...</Text>
           </View>
         ) : purchases.length === 0 ? (
@@ -321,42 +321,42 @@ export default function PurchaseHeadersScreen() {
 
 // Estilos del módulo Encabezado.
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F7FA' },
+  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
   container: { flexGrow: 1, width: '100%', maxWidth: 900, alignSelf: 'center', padding: 24 },
-  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F7FA' },
-  introCard: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 18, backgroundColor: '#176B87', borderRadius: 20, padding: 24, marginBottom: 20 },
+  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F7F5' },
+  introCard: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 18, backgroundColor: '#13795B', borderRadius: 20, padding: 24, marginBottom: 20 },
   introTextContainer: { flex: 1 },
   introTitle: { color: '#FFFFFF', fontSize: 25, fontWeight: '900' },
-  introText: { color: '#E7F5F8', fontSize: 16, lineHeight: 23, marginTop: 8 },
+  introText: { color: '#EAF8F2', fontSize: 16, lineHeight: 23, marginTop: 8 },
   newButton: { backgroundColor: '#FFFFFF', borderRadius: 11, paddingHorizontal: 17, paddingVertical: 13 },
-  newButtonText: { color: '#176B87', fontSize: 14, fontWeight: '900' },
+  newButtonText: { color: '#13795B', fontSize: 14, fontWeight: '900' },
   message: { borderRadius: 12, padding: 14, marginBottom: 16 },
   success: { backgroundColor: '#E6F6ED' },
   error: { backgroundColor: '#FDECEC' },
   successText: { color: '#1E6B42', fontSize: 15, fontWeight: '700' },
   errorText: { color: '#B42318', fontSize: 15, fontWeight: '700' },
   centerContent: { alignItems: 'center', justifyContent: 'center', paddingVertical: 70 },
-  loadingText: { color: '#5F7181', fontSize: 15, marginTop: 12 },
-  emptyCard: { alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E9EE', borderRadius: 18, padding: 34 },
-  emptyTitle: { color: '#14324A', fontSize: 19, fontWeight: '800', textAlign: 'center' },
-  emptyText: { color: '#5F7181', fontSize: 15, lineHeight: 21, marginTop: 7, textAlign: 'center' },
+  loadingText: { color: '#647D75', fontSize: 15, marginTop: 12 },
+  emptyCard: { alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DCE7E2', borderRadius: 18, padding: 34 },
+  emptyTitle: { color: '#173B32', fontSize: 19, fontWeight: '800', textAlign: 'center' },
+  emptyText: { color: '#647D75', fontSize: 15, lineHeight: 21, marginTop: 7, textAlign: 'center' },
   list: { gap: 14 },
-  countText: { color: '#5F7181', fontSize: 15, fontWeight: '700', marginBottom: 2 },
-  purchaseCard: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E9EE', borderRadius: 17, padding: 20, gap: 15 },
+  countText: { color: '#647D75', fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  purchaseCard: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DCE7E2', borderRadius: 17, padding: 20, gap: 15 },
   purchaseHeader: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 },
   purchaseInfo: { flex: 1, gap: 4 },
-  purchaseNumber: { color: '#176B87', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
-  clientName: { color: '#14324A', fontSize: 19, fontWeight: '900' },
-  email: { color: '#5F7181', fontSize: 14 },
-  date: { color: '#6C7F8F', fontSize: 14 },
+  purchaseNumber: { color: '#13795B', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
+  clientName: { color: '#173B32', fontSize: 19, fontWeight: '900' },
+  email: { color: '#647D75', fontSize: 14 },
+  date: { color: '#6A7E77', fontSize: 14 },
   totalBox: { alignItems: 'flex-end' },
-  total: { color: '#176B87', fontSize: 20, fontWeight: '900' },
-  units: { color: '#5F7181', fontSize: 13, marginTop: 4 },
+  total: { color: '#13795B', fontSize: 20, fontWeight: '900' },
+  units: { color: '#647D75', fontSize: 13, marginTop: 4 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 9 },
-  primaryButton: { minHeight: 43, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 17, backgroundColor: '#176B87' },
+  primaryButton: { minHeight: 43, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 17, backgroundColor: '#13795B' },
   primaryButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  secondaryButton: { minHeight: 43, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#AAC1CE', borderRadius: 10, paddingHorizontal: 16, backgroundColor: '#FFFFFF' },
-  secondaryButtonText: { color: '#176B87', fontSize: 14, fontWeight: '800' },
+  secondaryButton: { minHeight: 43, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#91BEAF', borderRadius: 10, paddingHorizontal: 16, backgroundColor: '#FFFFFF' },
+  secondaryButtonText: { color: '#13795B', fontSize: 14, fontWeight: '800' },
   deleteButton: { minHeight: 43, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D05A5A', borderRadius: 10, paddingHorizontal: 16, backgroundColor: '#FFFFFF' },
   deleteButtonText: { color: '#B42318', fontSize: 14, fontWeight: '800' },
   deleteConfirmation: { backgroundColor: '#FFF1F0', borderRadius: 12, padding: 15 },

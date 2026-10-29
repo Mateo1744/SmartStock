@@ -191,7 +191,7 @@ export default function StatisticsScreen() {
   if (authLoading || !user || user.rol !== 'admin') {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#176B87" />
+        <ActivityIndicator size="large" color="#13795B" />
       </View>
     );
   }
@@ -216,7 +216,7 @@ export default function StatisticsScreen() {
 
         {loading ? (
           <View style={styles.loadingContent}>
-            <ActivityIndicator size="large" color="#176B87" />
+            <ActivityIndicator size="large" color="#13795B" />
             <Text style={styles.loadingText}>Calculando estadísticas...</Text>
           </View>
         ) : (
@@ -355,12 +355,12 @@ function SummaryCard({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F7FA' },
+  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F4F7FA',
+    backgroundColor: '#F4F7F5',
   },
   container: {
     flexGrow: 1,
@@ -371,13 +371,13 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     gap: 18,
   },
-  heroCard: { backgroundColor: '#176B87', borderRadius: 22, padding: 26 },
-  heroLabel: { color: '#B8E3EF', fontSize: 12, fontWeight: '900', letterSpacing: 1.2 },
+  heroCard: { backgroundColor: '#13795B', borderRadius: 22, padding: 26 },
+  heroLabel: { color: '#BDE4D6', fontSize: 12, fontWeight: '900', letterSpacing: 1.2 },
   heroTitle: { color: '#FFFFFF', fontSize: 28, fontWeight: '900', marginTop: 7 },
-  heroText: { color: '#E7F5F8', fontSize: 16, lineHeight: 23, marginTop: 8 },
+  heroText: { color: '#EAF8F2', fontSize: 16, lineHeight: 23, marginTop: 8 },
   errorText: { color: '#B42318', backgroundColor: '#FFF1F0', borderRadius: 12, padding: 14 },
   loadingContent: { alignItems: 'center', paddingVertical: 70 },
-  loadingText: { color: '#5F7181', fontSize: 15, marginTop: 12 },
+  loadingText: { color: '#647D75', fontSize: 15, marginTop: 12 },
   summaryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   summaryCard: {
     flexGrow: 1,
@@ -386,22 +386,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E9EE',
+    borderColor: '#DCE7E2',
     borderRadius: 17,
     padding: 19,
   },
-  summaryLabel: { color: '#5F7181', fontSize: 14, fontWeight: '700' },
-  summaryValue: { color: '#14324A', fontSize: 25, fontWeight: '900', marginTop: 14 },
+  summaryLabel: { color: '#647D75', fontSize: 14, fontWeight: '700' },
+  summaryValue: { color: '#173B32', fontSize: 25, fontWeight: '900', marginTop: 14 },
   sectionCard: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E9EE',
+    borderColor: '#DCE7E2',
     borderRadius: 18,
     padding: 22,
   },
-  sectionTitle: { color: '#14324A', fontSize: 21, fontWeight: '900' },
-  sectionDescription: { color: '#5F7181', fontSize: 14, lineHeight: 21, marginTop: 6 },
-  emptyText: { color: '#6C7F8F', fontSize: 15, textAlign: 'center', paddingVertical: 30 },
+  sectionTitle: { color: '#173B32', fontSize: 21, fontWeight: '900' },
+  sectionDescription: { color: '#647D75', fontSize: 14, lineHeight: 21, marginTop: 6 },
+  emptyText: { color: '#6A7E77', fontSize: 15, textAlign: 'center', paddingVertical: 30 },
   successText: {
     color: '#1E6B42',
     backgroundColor: '#E6F6ED',
@@ -413,12 +413,12 @@ const styles = StyleSheet.create({
   rankingList: { gap: 20, marginTop: 22 },
   productRow: { gap: 10 },
   productHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  position: { color: '#176B87', fontSize: 17, fontWeight: '900', width: 32 },
+  position: { color: '#13795B', fontSize: 17, fontWeight: '900', width: 32 },
   productInformation: { flex: 1 },
-  productName: { color: '#14324A', fontSize: 16, fontWeight: '800' },
-  productMeta: { color: '#5F7181', fontSize: 13, marginTop: 3 },
-  barBackground: { height: 9, borderRadius: 5, backgroundColor: '#E2E9EE', overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: 5, backgroundColor: '#176B87' },
+  productName: { color: '#173B32', fontSize: 16, fontWeight: '800' },
+  productMeta: { color: '#647D75', fontSize: 13, marginTop: 3 },
+  barBackground: { height: 9, borderRadius: 5, backgroundColor: '#DCE7E2', overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 5, backgroundColor: '#13795B' },
   monthlyChart: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   monthColumn: { flex: 1, minWidth: 38, alignItems: 'center' },
   monthValue: {
     width: '100%',
-    color: '#36566D',
+    color: '#35574D',
     fontSize: 10,
     fontWeight: '800',
     textAlign: 'center',
@@ -440,13 +440,13 @@ const styles = StyleSheet.create({
     height: 130,
     justifyContent: 'flex-end',
     borderRadius: 8,
-    backgroundColor: '#EDF2F5',
+    backgroundColor: '#EAF4F0',
     overflow: 'hidden',
   },
   monthBar: { width: '100%', borderRadius: 8, backgroundColor: '#F59E0B' },
   emptyMonthBar: { backgroundColor: '#CCD7DE' },
   monthLabel: {
-    color: '#5F7181',
+    color: '#647D75',
     fontSize: 12,
     fontWeight: '800',
     textTransform: 'capitalize',
@@ -460,10 +460,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#EDF1F4',
+    borderBottomColor: '#EAF4F0',
     paddingVertical: 10,
   },
-  stockName: { flex: 1, color: '#14324A', fontSize: 15, fontWeight: '800' },
+  stockName: { flex: 1, color: '#173B32', fontSize: 15, fontWeight: '800' },
   stockBadge: { backgroundColor: '#FFF5D6', borderRadius: 15, paddingHorizontal: 12, paddingVertical: 7 },
   stockValue: { color: '#7A5A00', fontSize: 12, fontWeight: '900' },
   outOfStockBadge: { backgroundColor: '#FFF1F0' },

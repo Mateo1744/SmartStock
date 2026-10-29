@@ -322,7 +322,7 @@ export default function ProductsScreen() {
   if (authLoading || !user) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#176B87" />
+        <ActivityIndicator size="large" color="#13795B" />
       </View>
     );
   }
@@ -383,7 +383,7 @@ export default function ProductsScreen() {
 
         {loading ? (
           <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color="#176B87" />
+            <ActivityIndicator size="large" color="#13795B" />
             <Text style={styles.loadingText}>Cargando productos...</Text>
           </View>
         ) : products.length === 0 ? (
@@ -517,7 +517,7 @@ function ProductFormCard({
         value={form.nombre}
         onChangeText={(value) => onChange('nombre', value)}
         placeholder="Ejemplo: Teclado"
-        placeholderTextColor="#8A98A6"
+        placeholderTextColor="#71847D"
         editable={!disabled}
       />
       <Text style={styles.label}>Descripción</Text>
@@ -526,7 +526,7 @@ function ProductFormCard({
         value={form.descripcion}
         onChangeText={(value) => onChange('descripcion', value)}
         placeholder="Descripción del producto"
-        placeholderTextColor="#8A98A6"
+        placeholderTextColor="#71847D"
         multiline
         editable={!disabled}
       />
@@ -538,7 +538,7 @@ function ProductFormCard({
             value={form.valor}
             onChangeText={(value) => onChange('valor', value)}
             placeholder="50000"
-            placeholderTextColor="#8A98A6"
+            placeholderTextColor="#71847D"
             keyboardType="decimal-pad"
             editable={!disabled}
           />
@@ -550,7 +550,7 @@ function ProductFormCard({
             value={form.stock}
             onChangeText={(value) => onChange('stock', value)}
             placeholder="10"
-            placeholderTextColor="#8A98A6"
+            placeholderTextColor="#71847D"
             keyboardType="number-pad"
             editable={!disabled}
           />
@@ -575,7 +575,7 @@ function ProductFormCard({
 // Estilos del inventario y de sus formularios.
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  safeArea: { flex: 1, backgroundColor: '#F4F7FA' },
+  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
   container: {
     flexGrow: 1,
     width: '100%',
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F4F7FA',
+    backgroundColor: '#F4F7F5',
   },
   introCard: {
     flexDirection: 'row',
@@ -597,16 +597,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 18,
-    backgroundColor: '#176B87',
+    backgroundColor: '#13795B',
     borderRadius: 20,
     padding: 24,
     marginBottom: 20,
   },
   introTextContainer: { flex: 1 },
   introTitle: { color: '#FFFFFF', fontSize: 25, fontWeight: '900' },
-  introText: { color: '#E7F5F8', fontSize: 16, lineHeight: 23, marginTop: 8 },
+  introText: { color: '#EAF8F2', fontSize: 16, lineHeight: 23, marginTop: 8 },
   newButton: { backgroundColor: '#FFFFFF', borderRadius: 11, paddingHorizontal: 17, paddingVertical: 13 },
-  newButtonText: { color: '#176B87', fontSize: 14, fontWeight: '900' },
+  newButtonText: { color: '#13795B', fontSize: 14, fontWeight: '900' },
   message: { borderRadius: 12, padding: 14, marginBottom: 16 },
   success: { backgroundColor: '#E6F6ED' },
   error: { backgroundColor: '#FDECEC' },
@@ -615,22 +615,22 @@ const styles = StyleSheet.create({
   createCard: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#CFE1E8',
+    borderColor: '#B9D8CF',
     borderRadius: 17,
     padding: 20,
     marginBottom: 18,
   },
-  embeddedForm: { borderTopWidth: 1, borderTopColor: '#E2E9EE', paddingTop: 15 },
-  formTitle: { color: '#14324A', fontSize: 19, fontWeight: '900', marginBottom: 16 },
-  label: { color: '#14324A', fontSize: 14, fontWeight: '800', marginBottom: 7 },
+  embeddedForm: { borderTopWidth: 1, borderTopColor: '#DCE7E2', paddingTop: 15 },
+  formTitle: { color: '#173B32', fontSize: 19, fontWeight: '900', marginBottom: 16 },
+  label: { color: '#173B32', fontSize: 14, fontWeight: '800', marginBottom: 7 },
   input: {
     minHeight: 48,
     borderWidth: 1,
-    borderColor: '#D8E1E8',
+    borderColor: '#D7E7E1',
     borderRadius: 11,
     paddingHorizontal: 13,
-    color: '#14324A',
-    backgroundColor: '#FAFCFD',
+    color: '#173B32',
+    backgroundColor: '#FFFFFF',
     fontSize: 16,
     marginBottom: 14,
   },
@@ -638,36 +638,36 @@ const styles = StyleSheet.create({
   formRow: { flexDirection: 'row', gap: 12 },
   formColumn: { flex: 1 },
   centerContent: { alignItems: 'center', justifyContent: 'center', paddingVertical: 70 },
-  loadingText: { color: '#5F7181', fontSize: 15, marginTop: 12 },
+  loadingText: { color: '#647D75', fontSize: 15, marginTop: 12 },
   emptyCard: {
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E9EE',
+    borderColor: '#DCE7E2',
     borderRadius: 18,
     padding: 34,
   },
-  emptyTitle: { color: '#14324A', fontSize: 19, fontWeight: '800', textAlign: 'center' },
-  emptyText: { color: '#5F7181', fontSize: 15, lineHeight: 21, marginTop: 7, textAlign: 'center' },
+  emptyTitle: { color: '#173B32', fontSize: 19, fontWeight: '800', textAlign: 'center' },
+  emptyText: { color: '#647D75', fontSize: 15, lineHeight: 21, marginTop: 7, textAlign: 'center' },
   list: { gap: 14 },
-  countText: { color: '#5F7181', fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  countText: { color: '#647D75', fontSize: 15, fontWeight: '700', marginBottom: 2 },
   productCard: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E2E9EE',
+    borderColor: '#DCE7E2',
     borderRadius: 17,
     padding: 20,
     gap: 14,
   },
   productHeader: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 },
   productInfo: { flex: 1 },
-  productName: { color: '#14324A', fontSize: 20, fontWeight: '900' },
-  description: { color: '#5F7181', fontSize: 15, lineHeight: 21, marginTop: 5 },
+  productName: { color: '#173B32', fontSize: 20, fontWeight: '900' },
+  description: { color: '#647D75', fontSize: 15, lineHeight: 21, marginTop: 5 },
   priceBox: { alignItems: 'flex-end' },
-  price: { color: '#176B87', fontSize: 18, fontWeight: '900' },
+  price: { color: '#13795B', fontSize: 18, fontWeight: '900' },
   stock: { color: '#1E6B42', fontSize: 13, fontWeight: '800', marginTop: 5 },
   outOfStock: { color: '#B42318' },
-  salesText: { color: '#6C7F8F', fontSize: 13 },
+  salesText: { color: '#6A7E77', fontSize: 13 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 9, marginTop: 4 },
   primaryButton: {
     minWidth: 120,
@@ -676,7 +676,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 10,
     paddingHorizontal: 16,
-    backgroundColor: '#176B87',
+    backgroundColor: '#13795B',
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
   secondaryButton: {
@@ -684,12 +684,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#AAC1CE',
+    borderColor: '#91BEAF',
     borderRadius: 10,
     paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
   },
-  secondaryButtonText: { color: '#176B87', fontSize: 14, fontWeight: '800' },
+  secondaryButtonText: { color: '#13795B', fontSize: 14, fontWeight: '800' },
   deleteButton: {
     minHeight: 43,
     alignItems: 'center',

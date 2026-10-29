@@ -7,20 +7,38 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
+// Paleta visual compartida de SmartStock. Las pantallas usan estos mismos tonos
+// para mantener la identidad verde del inicio en toda la aplicación.
+export const SmartStockColors = {
+  primary: '#13795B',
+  primaryDark: '#126B52',
+  heading: '#173B32',
+  text: '#35574D',
+  textMuted: '#647D75',
+  background: '#F4F7F5',
+  surface: '#FFFFFF',
+  surfaceMint: '#EAF8F2',
+  border: '#DCE7E2',
+  borderStrong: '#91BEAF',
+  success: '#1E6B42',
+  warning: '#F59E0B',
+  danger: '#B42318',
+} as const;
+
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: SmartStockColors.heading,
+    background: SmartStockColors.background,
+    backgroundElement: SmartStockColors.surface,
+    backgroundSelected: SmartStockColors.surfaceMint,
+    textSecondary: SmartStockColors.textMuted,
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#F4FBF8',
+    background: '#071F1A',
+    backgroundElement: '#0B4338',
+    backgroundSelected: '#19594D',
+    textSecondary: '#B9D8CF',
   },
 } as const;
 

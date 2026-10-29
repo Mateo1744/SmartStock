@@ -15,6 +15,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -78,7 +79,19 @@ function formatDate(value: string) {
     : date.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+function getInitials(value: string) {
+  return value
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+}
+
 export default function PurchaseDetailsScreen() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 980;
+  const isCompact = width < 560;
   // Lee el parámetro id de la ruta /detalles.
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   // Expo Router puede entregar uno o varios valores; aquí se toma solo el primero.
@@ -102,6 +115,7 @@ export default function PurchaseDetailsScreen() {
 
   // Simplifica permisos y elementos visibles.
   const isAdmin = user?.rol === 'admin';
+  const totalUnits = details.reduce((sum, detail) => sum + detail.cantidad, 0);
 
   // Carga encabezado, detalles y productos disponibles para agregar.
   const loadDetails = useCallback(async () => {
@@ -300,34 +314,44 @@ export default function PurchaseDetailsScreen() {
   if (authLoading || !user) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#176B87" />
+        <ActivityIndicator size="large" color="#13795B" />
       </View>
     );
   }
 
-  // Interfaz del encabezado, lista de detalles y controles administrativos.
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          isDesktop ? styles.containerDesktop : styles.containerMobile,
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
         {loading ? (
           <View style={styles.loadingContent}>
-            <ActivityIndicator size="large" color="#176B87" />
-            <Text style={styles.loadingText}>Cargando detalle...</Text>
+            <ActivityIndicator size="large" color="#13795B" />
+            <Text style={styles.loadingText}>Preparando tu comprobante...</Text>
           </View>
         ) : header ? (
           <>
-            <View style={styles.headerCard}>
-              <View style={styles.headerInfo}>
-                <Text style={styles.headerLabel}>DETALLE DE LA COMPRA #{header.id}</Text>
-                <Text style={styles.clientName}>
-                  {header.nombre} {header.apellido}
-                </Text>
-                {isAdmin ? <Text style={styles.email}>{header.correo}</Text> : null}
-                <Text style={styles.date}>{formatDate(header.fecha)}</Text>
+            <View style={[styles.purchaseHero, isCompact && styles.purchaseHeroCompact]}>
+              <View style={styles.heroDecorationOne} />
+              <View style={styles.heroDecorationTwo} />
+              <View style={styles.heroMain}>
+                <View style={styles.completedBadge}>
+                  <Text style={styles.completedCheck}>✓</Text>
+                  <Text style={styles.completedText}>COMPRA COMPLETADA</Text>
+                </View>
+                <Text style={styles.purchaseNumber}>Compra #{String(header.id).padStart(3, '0')}</Text>
+                <Text style={styles.purchaseOwner}>{header.nombre} {header.apellido}</Text>
+                <Text style={styles.purchaseDate}>{formatDate(header.fecha)}</Text>
               </View>
-              <View style={styles.totalBox}>
-                <Text style={styles.totalLabel}>TOTAL</Text>
-                <Text style={styles.total}>{formatMoney(header.total)}</Text>
+              <View style={[styles.heroTotal, isCompact && styles.heroTotalCompact]}>
+                <Text style={styles.heroTotalLabel}>TOTAL PAGADO</Text>
+                <Text style={[styles.heroTotalValue, isCompact && styles.heroTotalValueCompact]}>
+                  {formatMoney(header.total)}
+                </Text>
               </View>
             </View>
 
@@ -341,22 +365,26 @@ export default function PurchaseDetailsScreen() {
 
             {isAdmin ? (
               <View style={styles.adminBar}>
-                <Text style={styles.adminText}>Edición disponible solo para el administrador</Text>
+                <View style={styles.adminInfo}>
+                  <Text style={styles.adminEyebrow}>HERRAMIENTAS ADMINISTRATIVAS</Text>
+                  <Text style={styles.adminText}>Puedes ajustar los productos y el inventario se actualizará automáticamente.</Text>
+                </View>
                 <Pressable
-                  style={styles.addButton}
+                  style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}
                   onPress={() => {
                     setShowAddForm((current) => !current);
                     setEditingId(null);
                     setDeleteId(null);
                     setMessage(null);
                   }}>
-                  <Text style={styles.addButtonText}>{showAddForm ? 'Cerrar' : 'Agregar producto'}</Text>
+                  <Text style={styles.addButtonText}>{showAddForm ? 'Cerrar formulario' : '+ Agregar producto'}</Text>
                 </Pressable>
               </View>
             ) : null}
 
             {isAdmin && showAddForm ? (
               <View style={styles.addForm}>
+                <Text style={styles.formEyebrow}>EDITAR COMPROBANTE</Text>
                 <Text style={styles.formTitle}>Agregar producto al detalle</Text>
                 {availableProducts.length === 0 ? (
                   <Text style={styles.noProductsText}>No hay otros productos con stock disponible.</Text>
@@ -367,16 +395,16 @@ export default function PurchaseDetailsScreen() {
                       {availableProducts.map((product) => (
                         <Pressable
                           key={product.id}
-                          style={[
+                          style={({ pressed }) => [
                             styles.productChoice,
                             selectedProductId === product.id && styles.productChoiceSelected,
+                            pressed && styles.buttonPressed,
                           ]}
                           onPress={() => setSelectedProductId(product.id)}>
-                          <Text
-                            style={[
-                              styles.productChoiceName,
-                              selectedProductId === product.id && styles.productChoiceNameSelected,
-                            ]}>
+                          <Text style={[
+                            styles.productChoiceName,
+                            selectedProductId === product.id && styles.productChoiceNameSelected,
+                          ]}>
                             {product.nombre}
                           </Text>
                           <Text style={styles.productChoiceInfo}>
@@ -394,20 +422,11 @@ export default function PurchaseDetailsScreen() {
                       editable={processingId !== -1}
                     />
                     <View style={styles.actions}>
-                      <Pressable
-                        style={styles.secondaryButton}
-                        onPress={() => setShowAddForm(false)}>
+                      <Pressable style={styles.secondaryButton} onPress={() => setShowAddForm(false)}>
                         <Text style={styles.secondaryButtonText}>Cancelar</Text>
                       </Pressable>
-                      <Pressable
-                        style={styles.primaryButton}
-                        onPress={addDetail}
-                        disabled={processingId === -1}>
-                        {processingId === -1 ? (
-                          <ActivityIndicator color="#FFFFFF" />
-                        ) : (
-                          <Text style={styles.primaryButtonText}>Agregar</Text>
-                        )}
+                      <Pressable style={styles.primaryButton} onPress={addDetail} disabled={processingId === -1}>
+                        {processingId === -1 ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Agregar</Text>}
                       </Pressable>
                     </View>
                   </>
@@ -415,100 +434,181 @@ export default function PurchaseDetailsScreen() {
               </View>
             ) : null}
 
-            <View style={styles.list}>
-              {details.map((detail) => {
-                const isEditing = editingId === detail.id;
-                const isDeleting = deleteId === detail.id;
-                const isProcessing = processingId === detail.id;
-
-                return (
-                  <View key={detail.id} style={styles.detailCard}>
-                    <View style={styles.detailHeader}>
-                      <View style={styles.detailInfo}>
-                        <Text style={styles.productName}>{detail.nombre}</Text>
-                        <Text style={styles.unitPrice}>
-                          Precio unitario: {formatMoney(detail.valor / detail.cantidad)}
-                        </Text>
-                      </View>
-                      <View style={styles.lineTotalBox}>
-                        <Text style={styles.lineTotal}>
-                          {formatMoney(detail.valor)}
-                        </Text>
-                        <Text style={styles.quantity}>{detail.cantidad} unidades</Text>
-                      </View>
-                    </View>
-
-                    {isEditing ? (
-                      <View style={styles.editForm}>
-                        <Text style={styles.label}>
-                          Nueva cantidad (disponibles para agregar: {detail.stock})
-                        </Text>
-                        <TextInput
-                          style={styles.quantityInput}
-                          value={editQuantity}
-                          onChangeText={setEditQuantity}
-                          keyboardType="number-pad"
-                          editable={!isProcessing}
-                        />
-                        <View style={styles.actions}>
-                          <Pressable style={styles.secondaryButton} onPress={() => setEditingId(null)}>
-                            <Text style={styles.secondaryButtonText}>Cancelar</Text>
-                          </Pressable>
-                          <Pressable
-                            style={styles.primaryButton}
-                            onPress={() => saveQuantity(detail)}
-                            disabled={isProcessing}>
-                            {isProcessing ? (
-                              <ActivityIndicator color="#FFFFFF" />
-                            ) : (
-                              <Text style={styles.primaryButtonText}>Guardar</Text>
-                            )}
-                          </Pressable>
-                        </View>
-                      </View>
-                    ) : null}
-
-                    {isDeleting ? (
-                      <View style={styles.deleteConfirmation}>
-                        <Text style={styles.confirmTitle}>¿Quitar este producto?</Text>
-                        <Text style={styles.confirmText}>Las unidades volverán al stock.</Text>
-                        <View style={styles.actions}>
-                          <Pressable style={styles.secondaryButton} onPress={() => setDeleteId(null)}>
-                            <Text style={styles.secondaryButtonText}>Cancelar</Text>
-                          </Pressable>
-                          <Pressable
-                            style={styles.deleteConfirmButton}
-                            onPress={() => removeDetail(detail)}
-                            disabled={isProcessing}>
-                            {isProcessing ? (
-                              <ActivityIndicator color="#FFFFFF" />
-                            ) : (
-                              <Text style={styles.deleteConfirmText}>Sí, quitar</Text>
-                            )}
-                          </Pressable>
-                        </View>
-                      </View>
-                    ) : null}
-
-                    {isAdmin && !isEditing && !isDeleting ? (
-                      <View style={styles.actions}>
-                        <Pressable style={styles.secondaryButton} onPress={() => startEditing(detail)}>
-                          <Text style={styles.secondaryButtonText}>Editar cantidad</Text>
-                        </Pressable>
-                        <Pressable style={styles.deleteButton} onPress={() => setDeleteId(detail.id)}>
-                          <Text style={styles.deleteButtonText}>Quitar</Text>
-                        </Pressable>
-                      </View>
-                    ) : null}
+            <View style={[styles.contentLayout, !isDesktop && styles.contentLayoutMobile]}>
+              <View style={styles.invoiceCard}>
+                <View style={styles.invoiceHeading}>
+                  <View>
+                    <Text style={styles.sectionEyebrow}>COMPROBANTE</Text>
+                    <Text style={styles.sectionTitle}>Productos comprados</Text>
                   </View>
-                );
-              })}
+                  <View style={styles.itemCountBadge}>
+                    <Text style={styles.itemCountText}>{details.length} {details.length === 1 ? 'producto' : 'productos'}</Text>
+                  </View>
+                </View>
+
+                {isDesktop ? (
+                  <View style={styles.tableHeading}>
+                    <Text style={[styles.tableHeadingText, styles.productColumn]}>PRODUCTO</Text>
+                    <Text style={styles.tableHeadingText}>PRECIO UNITARIO</Text>
+                    <Text style={styles.tableHeadingText}>CANTIDAD</Text>
+                    <Text style={[styles.tableHeadingText, styles.subtotalColumn]}>SUBTOTAL</Text>
+                  </View>
+                ) : null}
+
+                <View style={styles.list}>
+                  {details.map((detail) => {
+                    const isEditing = editingId === detail.id;
+                    const isDeleting = deleteId === detail.id;
+                    const isProcessing = processingId === detail.id;
+                    const unitPrice = detail.valor / detail.cantidad;
+
+                    return (
+                      <View key={detail.id} style={styles.detailCard}>
+                        <View style={[styles.detailRow, !isDesktop && styles.detailRowMobile]}>
+                          <View style={styles.productCell}>
+                            <View style={styles.productInitials}>
+                              <Text style={styles.productInitialsText}>{getInitials(detail.nombre) || 'SS'}</Text>
+                            </View>
+                            <View style={styles.detailInfo}>
+                              <Text style={styles.productName}>{detail.nombre}</Text>
+                              {!isDesktop ? <Text style={styles.mobileUnitPrice}>{formatMoney(unitPrice)} c/u</Text> : null}
+                            </View>
+                          </View>
+                          {isDesktop ? <Text style={styles.valueCell}>{formatMoney(unitPrice)}</Text> : null}
+                          <View style={styles.quantityBadge}>
+                            <Text style={styles.quantityBadgeText}>{detail.cantidad}</Text>
+                          </View>
+                          <Text style={styles.lineTotal}>{formatMoney(detail.valor)}</Text>
+                        </View>
+
+                        {isEditing ? (
+                          <View style={styles.editForm}>
+                            <Text style={styles.label}>Nueva cantidad (disponibles para agregar: {detail.stock})</Text>
+                            <TextInput
+                              style={styles.quantityInput}
+                              value={editQuantity}
+                              onChangeText={setEditQuantity}
+                              keyboardType="number-pad"
+                              editable={!isProcessing}
+                            />
+                            <View style={styles.actions}>
+                              <Pressable style={styles.secondaryButton} onPress={() => setEditingId(null)}>
+                                <Text style={styles.secondaryButtonText}>Cancelar</Text>
+                              </Pressable>
+                              <Pressable style={styles.primaryButton} onPress={() => saveQuantity(detail)} disabled={isProcessing}>
+                                {isProcessing ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryButtonText}>Guardar</Text>}
+                              </Pressable>
+                            </View>
+                          </View>
+                        ) : null}
+
+                        {isDeleting ? (
+                          <View style={styles.deleteConfirmation}>
+                            <Text style={styles.confirmTitle}>¿Quitar este producto?</Text>
+                            <Text style={styles.confirmText}>Las unidades volverán al stock.</Text>
+                            <View style={styles.actions}>
+                              <Pressable style={styles.secondaryButton} onPress={() => setDeleteId(null)}>
+                                <Text style={styles.secondaryButtonText}>Cancelar</Text>
+                              </Pressable>
+                              <Pressable style={styles.deleteConfirmButton} onPress={() => removeDetail(detail)} disabled={isProcessing}>
+                                {isProcessing ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.deleteConfirmText}>Sí, quitar</Text>}
+                              </Pressable>
+                            </View>
+                          </View>
+                        ) : null}
+
+                        {isAdmin && !isEditing && !isDeleting ? (
+                          <View style={styles.adminActions}>
+                            <Pressable style={styles.editLink} onPress={() => startEditing(detail)}>
+                              <Text style={styles.editLinkText}>Editar cantidad</Text>
+                            </Pressable>
+                            <Pressable style={styles.removeLink} onPress={() => setDeleteId(detail.id)}>
+                              <Text style={styles.removeLinkText}>Quitar producto</Text>
+                            </Pressable>
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={[styles.summaryCard, !isDesktop && styles.summaryCardMobile]}>
+                <View style={styles.summaryIcon}><Text style={styles.summaryIconText}>SS</Text></View>
+                <Text style={styles.summaryEyebrow}>RESUMEN</Text>
+                <Text style={styles.summaryTitle}>Información de la compra</Text>
+                <View style={styles.summaryInfoBlock}>
+                  <Text style={styles.summaryInfoLabel}>CLIENTE</Text>
+                  <Text style={styles.summaryInfoValue}>{header.nombre} {header.apellido}</Text>
+                  {isAdmin ? <Text style={styles.summaryEmail}>{header.correo}</Text> : null}
+                </View>
+                <View style={styles.summaryRows}>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryRowLabel}>Productos diferentes</Text>
+                    <Text style={styles.summaryRowValue}>{details.length}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryRowLabel}>Total de unidades</Text>
+                    <Text style={styles.summaryRowValue}>{totalUnits}</Text>
+                  </View>
+                </View>
+                <View style={styles.summaryTotalRow}>
+                  <Text style={styles.summaryTotalLabel}>Total pagado</Text>
+                  <Text style={styles.summaryTotalValue}>{formatMoney(header.total)}</Text>
+                </View>
+                <View style={styles.registeredNotice}>
+                  <Text style={styles.registeredCheck}>✓</Text>
+                  <Text style={styles.registeredText}>Compra registrada correctamente</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.timelineCard}>
+              <Text style={styles.sectionEyebrow}>ESTADO DE LA OPERACIÓN</Text>
+              <Text style={styles.timelineTitle}>Todo quedó actualizado</Text>
+              <View style={[styles.timeline, isCompact && styles.timelineCompact]}>
+                {['Compra creada', 'Inventario actualizado', 'Compra completada'].map((step, index) => (
+                  <View key={step} style={[styles.timelineStep, isCompact && styles.timelineStepCompact]}>
+                    <View style={styles.timelineCheck}><Text style={styles.timelineCheckText}>✓</Text></View>
+                    <Text style={styles.timelineStepText}>{step}</Text>
+                    {index < 2 ? <View style={[styles.timelineLine, isCompact && styles.timelineLineCompact]} /> : null}
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.completionBanner}>
+              <View style={styles.completionIcon}><Text style={styles.completionIconText}>✓</Text></View>
+              <View style={styles.completionContent}>
+                <Text style={styles.completionTitle}>La compra quedó registrada</Text>
+                <Text style={styles.completionText}>El inventario y los totales fueron actualizados correctamente.</Text>
+              </View>
+            </View>
+
+            <View style={[styles.pageActions, isCompact && styles.pageActionsCompact]}>
+              <Pressable
+                style={({ pressed }) => [styles.backButton, isCompact && styles.actionButtonCompact, pressed && styles.buttonPressed]}
+                onPress={() => router.push('/encabezados')}>
+                <Text style={styles.backButtonText}>‹ Volver a compras</Text>
+              </Pressable>
+              {!isAdmin ? (
+                <Pressable
+                  style={({ pressed }) => [styles.newPurchaseButton, isCompact && styles.actionButtonCompact, pressed && styles.buttonPressed]}
+                  onPress={() => router.push('/nueva-compra')}>
+                  <Text style={styles.newPurchaseButtonText}>Realizar otra compra</Text>
+                  <Text style={styles.newPurchaseArrow}>›</Text>
+                </Pressable>
+              ) : null}
             </View>
           </>
         ) : (
           <View style={styles.emptyCard}>
+            <Text style={styles.emptyIcon}>!</Text>
             <Text style={styles.emptyTitle}>Compra no disponible</Text>
-            <Text style={styles.emptyText}>Regresa a Encabezado y selecciona otra compra.</Text>
+            <Text style={styles.emptyText}>Regresa a Compras y selecciona otro registro.</Text>
+            <Pressable style={styles.primaryButton} onPress={() => router.push('/encabezados')}>
+              <Text style={styles.primaryButtonText}>Volver a compras</Text>
+            </Pressable>
           </View>
         )}
       </ScrollView>
@@ -518,55 +618,89 @@ export default function PurchaseDetailsScreen() {
 
 // Estilos del módulo Detalle.
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F7FA' },
-  container: { flexGrow: 1, width: '100%', maxWidth: 900, alignSelf: 'center', padding: 24 },
-  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F7FA' },
+  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
+  container: { flexGrow: 1, width: '100%', alignSelf: 'center' },
+  containerDesktop: { maxWidth: 1240, paddingHorizontal: 32, paddingTop: 28, paddingBottom: 52 },
+  containerMobile: { padding: 16, paddingBottom: 34 },
+  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F7F5' },
   loadingContent: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80 },
-  loadingText: { color: '#5F7181', fontSize: 15, marginTop: 12 },
-  headerCard: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18, backgroundColor: '#176B87', borderRadius: 20, padding: 24, marginBottom: 18 },
-  headerInfo: { flex: 1, gap: 4 },
-  headerLabel: { color: '#B8E3EF', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
-  clientName: { color: '#FFFFFF', fontSize: 23, fontWeight: '900' },
-  email: { color: '#E7F5F8', fontSize: 14 },
-  date: { color: '#E7F5F8', fontSize: 14 },
-  totalBox: { alignItems: 'flex-end' },
-  totalLabel: { color: '#B8E3EF', fontSize: 12, fontWeight: '900' },
-  total: { color: '#FFFFFF', fontSize: 24, fontWeight: '900', marginTop: 4 },
+  loadingText: { color: '#647D75', fontSize: 15, marginTop: 12 },
+  purchaseHero: { minHeight: 190, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 22, overflow: 'hidden', borderRadius: 24, paddingHorizontal: 32, paddingVertical: 28, marginBottom: 18, backgroundColor: '#0E7559' },
+  purchaseHeroCompact: { minHeight: 0, flexDirection: 'column', alignItems: 'stretch', padding: 22 },
+  heroDecorationOne: { position: 'absolute', right: -55, top: -85, width: 230, height: 230, borderRadius: 115, backgroundColor: 'rgba(255,255,255,0.07)' },
+  heroDecorationTwo: { position: 'absolute', right: 160, bottom: -95, width: 190, height: 190, borderRadius: 95, backgroundColor: 'rgba(255,255,255,0.04)' },
+  heroMain: { flex: 1, zIndex: 1 },
+  completedBadge: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 16, paddingHorizontal: 11, paddingVertical: 7, backgroundColor: 'rgba(220, 255, 242, 0.16)' },
+  completedCheck: { color: '#D6F5E8', fontSize: 12, fontWeight: '900' },
+  completedText: { color: '#D6F5E8', fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
+  purchaseNumber: { color: '#FFFFFF', fontSize: 30, lineHeight: 36, fontWeight: '900', marginTop: 15 },
+  purchaseOwner: { color: '#E8F7F1', fontSize: 16, fontWeight: '800', marginTop: 4 },
+  purchaseDate: { color: '#C6E7DC', fontSize: 13, marginTop: 6 },
+  heroTotal: { minWidth: 245, alignItems: 'flex-end', zIndex: 1 },
+  heroTotalCompact: { minWidth: 0, alignItems: 'flex-start', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.18)', paddingTop: 17 },
+  heroTotalLabel: { color: '#BCE5D7', fontSize: 10, fontWeight: '900', letterSpacing: 1.1 },
+  heroTotalValue: { color: '#FFFFFF', fontSize: 35, fontWeight: '900', marginTop: 5 },
+  heroTotalValueCompact: { fontSize: 28 },
   message: { borderRadius: 12, padding: 14, marginBottom: 16 },
   success: { backgroundColor: '#E6F6ED' },
   error: { backgroundColor: '#FDECEC' },
   successText: { color: '#1E6B42', fontSize: 15, fontWeight: '700' },
   errorText: { color: '#B42318', fontSize: 15, fontWeight: '700' },
-  adminBar: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14, marginBottom: 15 },
-  adminText: { flex: 1, color: '#5F7181', fontSize: 14 },
-  addButton: { backgroundColor: '#176B87', borderRadius: 10, paddingHorizontal: 15, paddingVertical: 12 },
+  adminBar: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderWidth: 1, borderColor: '#D4E4DE', borderRadius: 17, padding: 15, marginBottom: 16, backgroundColor: '#FFFFFF' },
+  adminInfo: { flex: 1, minWidth: 230 },
+  adminEyebrow: { color: '#4F8474', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  adminText: { color: '#647D75', fontSize: 13, lineHeight: 19, marginTop: 4 },
+  addButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: '#13795B', borderRadius: 11, paddingHorizontal: 15 },
   addButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  addForm: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#CFE1E8', borderRadius: 16, padding: 19, marginBottom: 16 },
-  formTitle: { color: '#14324A', fontSize: 18, fontWeight: '900', marginBottom: 14 },
-  noProductsText: { color: '#5F7181', fontSize: 15 },
-  label: { color: '#14324A', fontSize: 14, fontWeight: '800', marginBottom: 7 },
-  productChoices: { gap: 8, marginBottom: 14 },
-  productChoice: { borderWidth: 1, borderColor: '#D8E1E8', borderRadius: 11, padding: 12, backgroundColor: '#FAFCFD' },
-  productChoiceSelected: { borderColor: '#176B87', backgroundColor: '#E8F3F6' },
-  productChoiceName: { color: '#14324A', fontSize: 15, fontWeight: '800' },
-  productChoiceNameSelected: { color: '#176B87' },
-  productChoiceInfo: { color: '#5F7181', fontSize: 13, marginTop: 3 },
-  quantityInput: { width: 130, minHeight: 47, borderWidth: 1, borderColor: '#AAC1CE', borderRadius: 10, paddingHorizontal: 13, color: '#14324A', backgroundColor: '#FAFCFD', fontSize: 16, marginBottom: 10 },
-  list: { gap: 12 },
-  detailCard: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E9EE', borderRadius: 16, padding: 19, gap: 14 },
-  detailHeader: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 15 },
+  addForm: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#B9D8CF', borderRadius: 18, padding: 20, marginBottom: 16 },
+  formEyebrow: { color: '#4F8474', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  formTitle: { color: '#173B32', fontSize: 19, fontWeight: '900', marginTop: 4, marginBottom: 14 },
+  noProductsText: { color: '#647D75', fontSize: 15 },
+  label: { color: '#173B32', fontSize: 14, fontWeight: '800', marginBottom: 7 },
+  productChoices: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 },
+  productChoice: { borderWidth: 1, borderColor: '#D7E7E1', borderRadius: 11, padding: 12, backgroundColor: '#FFFFFF' },
+  productChoiceSelected: { borderColor: '#13795B', backgroundColor: '#EAF4F0' },
+  productChoiceName: { color: '#173B32', fontSize: 15, fontWeight: '800' },
+  productChoiceNameSelected: { color: '#13795B' },
+  productChoiceInfo: { color: '#647D75', fontSize: 13, marginTop: 3 },
+  quantityInput: { width: 130, minHeight: 47, borderWidth: 1, borderColor: '#91BEAF', borderRadius: 10, paddingHorizontal: 13, color: '#173B32', backgroundColor: '#FFFFFF', fontSize: 16, marginBottom: 10 },
+  contentLayout: { flexDirection: 'row', alignItems: 'flex-start', gap: 18 },
+  contentLayoutMobile: { flexDirection: 'column' },
+  invoiceCard: { flex: 1, minWidth: 0, overflow: 'hidden', borderWidth: 1, borderColor: '#D9E6E2', borderRadius: 21, backgroundColor: '#FFFFFF' },
+  invoiceHeading: { minHeight: 88, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, borderBottomWidth: 1, borderBottomColor: '#E5ECE9', paddingHorizontal: 20, paddingVertical: 17 },
+  sectionEyebrow: { color: '#4F8474', fontSize: 9, fontWeight: '900', letterSpacing: 1.1 },
+  sectionTitle: { color: '#173B32', fontSize: 21, fontWeight: '900', marginTop: 4 },
+  itemCountBadge: { borderRadius: 15, paddingHorizontal: 11, paddingVertical: 7, backgroundColor: '#E6F4EF' },
+  itemCountText: { color: '#13795B', fontSize: 11, fontWeight: '900' },
+  tableHeading: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, backgroundColor: '#F5F8F7' },
+  tableHeadingText: { width: 112, color: '#71847D', fontSize: 9, fontWeight: '900', letterSpacing: 0.7 },
+  productColumn: { flex: 1 },
+  subtotalColumn: { textAlign: 'right' },
+  list: { paddingHorizontal: 20 },
+  detailCard: { borderBottomWidth: 1, borderBottomColor: '#E6ECEA', paddingVertical: 16 },
+  detailRow: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  detailRowMobile: { flexWrap: 'wrap' },
+  productCell: { flex: 1, minWidth: 170, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  productInitials: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 15, backgroundColor: '#DFF2EB' },
+  productInitialsText: { color: '#126B52', fontSize: 11, fontWeight: '900' },
   detailInfo: { flex: 1 },
-  productName: { color: '#14324A', fontSize: 19, fontWeight: '900' },
-  unitPrice: { color: '#5F7181', fontSize: 14, marginTop: 5 },
-  lineTotalBox: { alignItems: 'flex-end' },
-  lineTotal: { color: '#176B87', fontSize: 18, fontWeight: '900' },
-  quantity: { color: '#5F7181', fontSize: 13, marginTop: 4 },
-  editForm: { borderTopWidth: 1, borderTopColor: '#E2E9EE', paddingTop: 14 },
+  productName: { color: '#173B32', fontSize: 15, fontWeight: '900' },
+  mobileUnitPrice: { color: '#71847D', fontSize: 11, marginTop: 3 },
+  valueCell: { width: 112, color: '#49665D', fontSize: 13, fontWeight: '700' },
+  quantityBadge: { width: 112, alignItems: 'flex-start' },
+  quantityBadgeText: { minWidth: 34, color: '#13795B', fontSize: 12, fontWeight: '900', textAlign: 'center', borderRadius: 12, paddingHorizontal: 9, paddingVertical: 6, backgroundColor: '#E5F5EF', overflow: 'hidden' },
+  lineTotal: { width: 112, color: '#173B32', fontSize: 14, fontWeight: '900', textAlign: 'right' },
+  editForm: { borderTopWidth: 1, borderTopColor: '#DCE7E2', paddingTop: 14, marginTop: 13 },
+  adminActions: { flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 14, marginTop: 10 },
+  editLink: { paddingVertical: 5 },
+  editLinkText: { color: '#13795B', fontSize: 12, fontWeight: '900' },
+  removeLink: { paddingVertical: 5 },
+  removeLinkText: { color: '#B42318', fontSize: 12, fontWeight: '900' },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 9 },
-  primaryButton: { minWidth: 105, minHeight: 43, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 16, backgroundColor: '#176B87' },
+  primaryButton: { minWidth: 105, minHeight: 43, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 16, backgroundColor: '#13795B' },
   primaryButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  secondaryButton: { minHeight: 43, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#AAC1CE', borderRadius: 10, paddingHorizontal: 16, backgroundColor: '#FFFFFF' },
-  secondaryButtonText: { color: '#176B87', fontSize: 14, fontWeight: '800' },
+  secondaryButton: { minHeight: 43, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#91BEAF', borderRadius: 10, paddingHorizontal: 16, backgroundColor: '#FFFFFF' },
+  secondaryButtonText: { color: '#13795B', fontSize: 14, fontWeight: '800' },
   deleteButton: { minHeight: 43, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D05A5A', borderRadius: 10, paddingHorizontal: 16, backgroundColor: '#FFFFFF' },
   deleteButtonText: { color: '#B42318', fontSize: 14, fontWeight: '800' },
   deleteConfirmation: { backgroundColor: '#FFF1F0', borderRadius: 12, padding: 15 },
@@ -574,7 +708,54 @@ const styles = StyleSheet.create({
   confirmText: { color: '#8F1D14', fontSize: 14, marginTop: 5 },
   deleteConfirmButton: { minWidth: 105, minHeight: 43, alignItems: 'center', justifyContent: 'center', borderRadius: 10, paddingHorizontal: 16, backgroundColor: '#B42318' },
   deleteConfirmText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
-  emptyCard: { alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E9EE', borderRadius: 18, padding: 34 },
-  emptyTitle: { color: '#14324A', fontSize: 19, fontWeight: '800', textAlign: 'center' },
-  emptyText: { color: '#5F7181', fontSize: 15, lineHeight: 21, marginTop: 7, textAlign: 'center' },
+  summaryCard: { width: 340, borderWidth: 1, borderColor: '#D9E6E2', borderRadius: 21, padding: 20, backgroundColor: '#FFFFFF', shadowColor: '#173B32', shadowOffset: { width: 0, height: 7 }, shadowOpacity: 0.06, shadowRadius: 16, elevation: 3 },
+  summaryCardMobile: { width: '100%' },
+  summaryIcon: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: '#DFF2EB' },
+  summaryIconText: { color: '#13795B', fontSize: 12, fontWeight: '900' },
+  summaryEyebrow: { color: '#4F8474', fontSize: 9, fontWeight: '900', letterSpacing: 1.1, marginTop: 16 },
+  summaryTitle: { color: '#173B32', fontSize: 20, fontWeight: '900', marginTop: 4 },
+  summaryInfoBlock: { borderRadius: 14, padding: 14, marginTop: 17, backgroundColor: '#F1F7F5' },
+  summaryInfoLabel: { color: '#71847D', fontSize: 8, fontWeight: '900', letterSpacing: 1 },
+  summaryInfoValue: { color: '#173B32', fontSize: 14, fontWeight: '900', marginTop: 5 },
+  summaryEmail: { color: '#647D75', fontSize: 11, marginTop: 3 },
+  summaryRows: { gap: 12, paddingVertical: 18 },
+  summaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
+  summaryRowLabel: { color: '#647D75', fontSize: 13 },
+  summaryRowValue: { color: '#173B32', fontSize: 14, fontWeight: '900' },
+  summaryTotalRow: { borderTopWidth: 1, borderTopColor: '#DCE7E2', paddingTop: 17 },
+  summaryTotalLabel: { color: '#647D75', fontSize: 12, fontWeight: '800' },
+  summaryTotalValue: { color: '#0B624A', fontSize: 26, fontWeight: '900', marginTop: 4 },
+  registeredNotice: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 12, padding: 12, marginTop: 17, backgroundColor: '#E5F6EE' },
+  registeredCheck: { color: '#13795B', fontSize: 13, fontWeight: '900' },
+  registeredText: { flex: 1, color: '#126B52', fontSize: 11, lineHeight: 16, fontWeight: '800' },
+  timelineCard: { borderWidth: 1, borderColor: '#D9E6E2', borderRadius: 20, padding: 20, marginTop: 18, backgroundColor: '#FFFFFF' },
+  timelineTitle: { color: '#173B32', fontSize: 20, fontWeight: '900', marginTop: 4 },
+  timeline: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 22 },
+  timelineCompact: { flexDirection: 'column', gap: 0 },
+  timelineStep: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  timelineStepCompact: { width: '100%', minHeight: 58, flex: 0 },
+  timelineCheck: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: '#13795B', zIndex: 1 },
+  timelineCheckText: { color: '#FFFFFF', fontSize: 13, fontWeight: '900' },
+  timelineStepText: { flex: 1, color: '#35574D', fontSize: 12, lineHeight: 17, fontWeight: '900', marginLeft: 9 },
+  timelineLine: { position: 'absolute', left: '66%', right: -4, top: 16, height: 2, backgroundColor: '#9FD2C0' },
+  timelineLineCompact: { left: 16, right: 'auto', top: 34, width: 2, height: 24 },
+  completionBanner: { flexDirection: 'row', alignItems: 'center', gap: 14, borderWidth: 1, borderColor: '#BDE3D4', borderRadius: 18, padding: 17, marginTop: 14, backgroundColor: '#E9F8F2' },
+  completionIcon: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: '#13795B' },
+  completionIconText: { color: '#FFFFFF', fontSize: 17, fontWeight: '900' },
+  completionContent: { flex: 1 },
+  completionTitle: { color: '#126B52', fontSize: 15, fontWeight: '900' },
+  completionText: { color: '#4D7468', fontSize: 12, lineHeight: 18, marginTop: 3 },
+  pageActions: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginTop: 18 },
+  pageActionsCompact: { flexDirection: 'column' },
+  backButton: { minHeight: 50, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#9AC8B9', borderRadius: 13, paddingHorizontal: 18, backgroundColor: '#FFFFFF' },
+  backButtonText: { color: '#13795B', fontSize: 14, fontWeight: '900' },
+  newPurchaseButton: { minHeight: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 13, paddingHorizontal: 20, backgroundColor: '#13795B' },
+  newPurchaseButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '900' },
+  newPurchaseArrow: { color: '#FFFFFF', fontSize: 23, lineHeight: 23 },
+  actionButtonCompact: { width: '100%' },
+  buttonPressed: { opacity: 0.78 },
+  emptyCard: { alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DCE7E2', borderRadius: 18, padding: 34 },
+  emptyIcon: { width: 48, height: 48, color: '#B87915', fontSize: 20, lineHeight: 48, fontWeight: '900', textAlign: 'center', borderRadius: 16, backgroundColor: '#FFF0CF', overflow: 'hidden', marginBottom: 13 },
+  emptyTitle: { color: '#173B32', fontSize: 19, fontWeight: '800', textAlign: 'center' },
+  emptyText: { color: '#647D75', fontSize: 15, lineHeight: 21, marginTop: 7, marginBottom: 16, textAlign: 'center' },
 });

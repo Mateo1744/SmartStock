@@ -107,7 +107,7 @@ export default function RegisterScreen() {
               value={email}
               onChangeText={setEmail}
               placeholder="correo@ejemplo.com"
-              placeholderTextColor="#8A98A6"
+              placeholderTextColor="#71847D"
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
@@ -120,7 +120,7 @@ export default function RegisterScreen() {
               value={password}
               onChangeText={setPassword}
               placeholder="Mínimo 6 caracteres"
-              placeholderTextColor="#8A98A6"
+              placeholderTextColor="#71847D"
               secureTextEntry
               editable={!isLoading}
             />
@@ -131,7 +131,7 @@ export default function RegisterScreen() {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               placeholder="Repite la contraseña"
-              placeholderTextColor="#8A98A6"
+              placeholderTextColor="#71847D"
               secureTextEntry
               editable={!isLoading}
               onSubmitEditing={handleRegister}
@@ -163,11 +163,11 @@ export default function RegisterScreen() {
 // Estilos de presentación del formulario.
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  safeArea: { flex: 1, backgroundColor: '#F4F7FA' },
+  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
   container: { flexGrow: 1, paddingHorizontal: 28, paddingVertical: 30 },
   intro: { width: '100%', maxWidth: 460, alignSelf: 'center', marginBottom: 24 },
-  title: { color: '#14324A', fontSize: 29, fontWeight: '800' },
-  subtitle: { color: '#5F7181', fontSize: 16, lineHeight: 23, marginTop: 8 },
+  title: { color: '#173B32', fontSize: 29, fontWeight: '800' },
+  subtitle: { color: '#647D75', fontSize: 16, lineHeight: 23, marginTop: 8 },
   form: {
     width: '100%',
     maxWidth: 460,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   label: {
-    color: '#14324A',
+    color: '#173B32',
     fontSize: 14,
     fontWeight: '700',
     marginBottom: 8,
@@ -188,11 +188,11 @@ const styles = StyleSheet.create({
   input: {
     minHeight: 52,
     borderWidth: 1,
-    borderColor: '#D8E1E8',
+    borderColor: '#D7E7E1',
     borderRadius: 12,
     paddingHorizontal: 14,
-    color: '#14324A',
-    backgroundColor: '#FAFCFD',
+    color: '#173B32',
+    backgroundColor: '#FFFFFF',
     fontSize: 16,
     marginBottom: 17,
   },
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#176B87',
+    backgroundColor: '#13795B',
   },
   primaryButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
   buttonPressed: { opacity: 0.82 },

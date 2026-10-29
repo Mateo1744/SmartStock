@@ -25,10 +25,10 @@ export default function RootLayout() {
           screenOptions={{
             headerShadowVisible: false,
             headerTransparent: false,
-            headerStyle: { backgroundColor: '#F4F7FA' },
+            headerStyle: { backgroundColor: '#F4F7F5' },
             headerTitleAlign: 'center',
-            headerTintColor: '#14324A',
-            contentStyle: { backgroundColor: '#F4F7FA' },
+            headerTintColor: '#173B32',
+            contentStyle: { backgroundColor: '#F4F7F5' },
           }}>
           {/* Rutas públicas y pantalla que decide el destino inicial. */}
           <Stack.Screen name="index" options={{ headerShown: false }} />

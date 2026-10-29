@@ -137,7 +137,7 @@ export default function ClientProfileScreen() {
   if (authLoading || checkingProfile || !user || user.rol !== 'cliente') {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#176B87" />
+        <ActivityIndicator size="large" color="#13795B" />
       </View>
     );
   }
@@ -169,7 +169,7 @@ export default function ClientProfileScreen() {
               value={name}
               onChangeText={setName}
               placeholder="Ejemplo: Mateo"
-              placeholderTextColor="#8A98A6"
+              placeholderTextColor="#71847D"
               autoCapitalize="words"
               editable={!saving}
             />
@@ -180,7 +180,7 @@ export default function ClientProfileScreen() {
               value={lastName}
               onChangeText={setLastName}
               placeholder="Ejemplo: Naranjo"
-              placeholderTextColor="#8A98A6"
+              placeholderTextColor="#71847D"
               autoCapitalize="words"
               editable={!saving}
               onSubmitEditing={handleSave}
@@ -212,12 +212,12 @@ export default function ClientProfileScreen() {
 // Estilos visuales de la pantalla de perfil.
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  safeArea: { flex: 1, backgroundColor: '#F4F7FA' },
+  safeArea: { flex: 1, backgroundColor: '#F4F7F5' },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F4F7FA',
+    backgroundColor: '#F4F7F5',
   },
   container: {
     flexGrow: 1,
@@ -229,32 +229,32 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   introCard: {
-    backgroundColor: '#176B87',
+    backgroundColor: '#13795B',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
   },
-  stepLabel: { color: '#B8E3EF', fontSize: 12, fontWeight: '900', letterSpacing: 1.2 },
+  stepLabel: { color: '#BDE4D6', fontSize: 12, fontWeight: '900', letterSpacing: 1.2 },
   title: { color: '#FFFFFF', fontSize: 27, fontWeight: '900', marginTop: 7 },
-  subtitle: { color: '#E7F5F8', fontSize: 16, lineHeight: 23, marginTop: 7 },
+  subtitle: { color: '#EAF8F2', fontSize: 16, lineHeight: 23, marginTop: 7 },
   form: {
     backgroundColor: '#FFFFFF',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     borderWidth: 1,
     borderTopWidth: 0,
-    borderColor: '#E2E9EE',
+    borderColor: '#DCE7E2',
     padding: 24,
   },
-  label: { color: '#14324A', fontSize: 14, fontWeight: '800', marginBottom: 8 },
+  label: { color: '#173B32', fontSize: 14, fontWeight: '800', marginBottom: 8 },
   input: {
     minHeight: 52,
     borderWidth: 1,
-    borderColor: '#D8E1E8',
+    borderColor: '#D7E7E1',
     borderRadius: 12,
     paddingHorizontal: 14,
-    color: '#14324A',
-    backgroundColor: '#FAFCFD',
+    color: '#173B32',
+    backgroundColor: '#FFFFFF',
     fontSize: 16,
     marginBottom: 18,
   },
@@ -262,13 +262,13 @@ const styles = StyleSheet.create({
     minHeight: 52,
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#D8E1E8',
+    borderColor: '#D7E7E1',
     borderRadius: 12,
     paddingHorizontal: 14,
-    backgroundColor: '#EDF2F5',
+    backgroundColor: '#EAF4F0',
     marginBottom: 18,
   },
-  readOnlyText: { color: '#5F7181', fontSize: 16 },
+  readOnlyText: { color: '#647D75', fontSize: 16 },
   errorText: {
     color: '#B42318',
     backgroundColor: '#FFF1F0',
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 12,
-    backgroundColor: '#176B87',
+    backgroundColor: '#13795B',
   },
   saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
   buttonPressed: { opacity: 0.82 },
